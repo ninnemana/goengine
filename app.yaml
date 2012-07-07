@@ -217,4 +217,4 @@ handlers:
 #   expiration: "15m"
   
 - url: /.*
-  script: gae.py
+  script: _go_app

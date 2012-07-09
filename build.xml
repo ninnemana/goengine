@@ -93,7 +93,7 @@
         </delete>
         
         <copy todir="${project_root}">
-            <fileset dir="${backup_dir}" includes="static/*"/>
+            <fileset dir="${backup_dir}" includes="static,templates,layout.html"/>
         </copy>
 
         <copy todir="${js_dir}">

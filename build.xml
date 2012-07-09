@@ -1,23 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project default="goengine-boilerplate">
-	<taskdef resource="net/sf/antcontrib/antlib.xml">
-		<classpath>
-			<pathelement location="/usr/share/ant/lib/ant-contrib-0.6.jar" />
-		</classpath>
-	</taskdef>
-	<target name="goengine-boilerplate">
-		<tstamp>
-			<format property="pub_time" pattern="MM/dd/yyyy hh:mm:ss aa" />
-			<format property="backup_label" pattern="MM_dd_yyyy hh-mm-ss aa" />
-		</tstamp>
-		<property name="project_root" value="." />
-		<property name="js_dir" value="${project_root}/static/js/" />
-		<property name="css_dir" value="${project_root}/static/css/" />
-		<property name="img_dir" value="${project_root}/static/img/" />
-		<property name="templates_dir" value="${project_root}/templates/" />
-		<property name="compl_jar" value="compiler.jar"/>
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+        <classpath>
+            <pathelement location="/usr/share/ant/lib/ant-contrib-0.6.jar" />
+        </classpath>
+    </taskdef>
+    <target name="goengine-boilerplate">
+        <tstamp>
+            <format property="pub_time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+            <format property="backup_label" pattern="MM_dd_yyyy hh-mm-ss aa" />
+        </tstamp>
+        <property name="project_root" value="." />
+        <property name="js_dir" value="${project_root}/static/js/" />
+        <property name="css_dir" value="${project_root}/static/css/" />
+        <property name="img_dir" value="${project_root}/static/img/" />
+        <property name="templates_dir" value="${project_root}/templates/" />
+        <property name="compl_jar" value="compiler.jar"/>
         <property name="backup_dir" value="backup_${backup_label}"/>
         
+
+        <!-- Clean up old backups -->
+        <delete includeemptydirs="true">
+            <fileset dir="${project_root}" defaultexcludes="false">
+               <include name="**/backup_*/**" />
+            </fileset>
+        </delete>
+
         <!--Temp directory stores current project copy and all actions are performed under <project_root>. 
             This folder is also uploaded to GAE -->        
         <mkdir dir="${backup_dir}"/>
@@ -30,12 +38,12 @@
         <!-- Compressing js-files with Google closure compiler -->
         <for param="file">
           <path>
-            <fileset dir="${js_dir}" includes="**/*.js"/>
+            <fileset dir="${js_dir}" includes="**/*.js" excludes="*.min.js,**/*.min.js"/>
           </path>
           <sequential>
             <dirname property="@{file}.dir" file="@{file}" />
             <basename property="@{file}.name" file="@{file}" suffix=".js"/>
-            <exec executable="java" dir="${js_dir}">
+            <exec executable="/usr/bin/java">
                 <arg value="-jar"/>
                 <arg value="${compl_jar}"/>
                 <arg value="--js"/>
@@ -51,10 +59,21 @@
             <fileset dir="${js_dir}" includes="**/*.js" excludes="**/*.min.js"/>
         </delete>
         
+        <replace dir="${project_root}" value=".js">
+          <include name="**/*.html"/>
+          <replacetoken>.min.js</replacetoken>
+        </replace>
+
         <!-- Replacing references to debug versions of js files with there comporessed copies -->
-        <replace dir="${templates_dir}" value=".min.js">
+        <replace dir="${project_root}" value=".min.js">
           <include name="**/*.html"/>
           <replacetoken>.js</replacetoken>
+        </replace>
+
+        <!-- Have to handle the Google Analytics script separately (ga.js in minified) -->
+        <replace dir="${project_root}" value="ga.js">
+          <include name="**/*.html"/>
+          <replacetoken>ga.min.js</replacetoken>
         </replace>
         
         <!-- Placing publish date label on all html pages -->
@@ -70,13 +89,19 @@
         
         <!-- removing all published data -->
         <delete>
-            <fileset dir="${project_root}"/>
-            <dirset dir="${project_root}" includes="js,css,img,templates"/>
+            <dirset dir="${project_root}" excludes="${backup_dir}"/>
         </delete>
         
-        <!-- Restoring project from back up -->
         <copy todir="${project_root}">
-            <fileset dir="${backup_dir}"/>
+            <fileset dir="${backup_dir}" includes="static/*"/>
         </copy>
-	</target>
+
+        <copy todir="${js_dir}">
+            <fileset dir="${backup_dir}/${js_dir}"/>
+        </copy>
+
+        <delete>
+            <dirset dir="${backup_dir}"/>
+        </delete>
+    </target>
 </project>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project default="goengine-boilerplate">
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="/usr/share/ant/lib/ant-contrib-0.6.jar" />
+		</classpath>
+	</taskdef>
+	<target name="goengine-boilerplate">
+		<tstamp>
+			<format property="pub_time" pattern="MM/dd/yyyy hh:mm:ss aa" />
+			<format property="backup_label" pattern="MM_dd_yyyy hh-mm-ss aa" />
+		</tstamp>
+		<property name="project_root" value="." />
+		<property name="js_dir" value="${project_root}/static/js/" />
+		<property name="css_dir" value="${project_root}/static/css/" />
+		<property name="img_dir" value="${project_root}/static/img/" />
+		<property name="tempaltes_dir" value="${project_root}/templates/" />
+		<property name="compl_jar" value="${project_root}/compiler.jar"/>
+        <property name="backup_dir" value="backup_${backup_label}"/>
+        
+        <!--Temp directory stores current project copy and all actions are performed under <project_root>. 
+            This folder is also uploaded to GAE -->        
+        <mkdir dir="${backup_dir}"/>
+        
+        <!-- Create back up copy of the project files -->
+        <copy todir="${backup_dir}">
+            <fileset dir="${project_root}"/>
+        </copy>
+        
+        <!-- Compressing js-files with Google closure compiler -->
+        <for param="file">
+          <path>
+            <fileset dir="${js_dir}" includes="**/*.js"/>
+          </path>
+          <sequential>
+            <dirname property="@{file}.dir" file="@{file}" />
+            <basename property="@{file}.name" file="@{file}" suffix=".js"/>
+            <exec executable="java" dir="${js_dir}">
+                <arg value="-jar"/>
+                <arg value="${compl_jar}"/>
+                <arg value="--js"/>
+                <arg value="@{file}"/>
+                <arg value="--js_output_file"/>
+                <arg value="${@{file}.dir}/${@{file}.name}.min.js"/>
+            </exec>
+          </sequential>
+        </for>
+        
+        <!-- Removing debug-versions of the js-files -->
+        <delete>
+            <fileset dir="${js_dir}" includes="**/*.js" excludes="**/*.min.js"/>
+        </delete>
+        
+        <!-- Replacing references to debug versions of js files with there comporessed copies -->
+        <replace dir="${templates_dir}" value=".min.js">
+          <include name="**/*.html"/>
+          <replacetoken>.js</replacetoken>
+        </replace>
+        
+        <!-- Placing publish date label on all html pages -->
+        <replace dir="${templates_dir}" value="${pub_time}">
+          <include name="**/*.html"/>
+          <replacetoken>{last_pub_time}</replacetoken>
+        </replace>
+        
+        <!-- Publishing project to GAE -->
+        <exec executable="upload.sh"/>
+        
+        <!-- removing all published data -->
+        <!--delete>
+            <fileset dir="${project_root}"/>
+            <dirset dir="${project_root}" includes="js,css,img,templates"/>
+        </delete-->
+        
+        <!-- Restoring project from back up -->
+        <!--copy todir="${project_root}">
+            <fileset dir="${backup_dir}"/>
+        </copy-->
+	</target>
+</project>

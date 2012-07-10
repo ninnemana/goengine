@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"gophers/controllers"
 	"net/http"
 	"html/template"
 )
@@ -40,6 +41,7 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rt := start()
 	rd, _ := rt.Match(w, r)
 	ctx := &WebContext{w: w, r: r, rd: rd, template: "templates/" + rd.Controller + "/" + rd.Action + ".html"}
+	ctx.vb = controllerlist[rd.Controller][rd.Action].Run
 	DisplayTemplate(ctx)
 }
 
@@ -56,7 +58,3 @@ func DisplayTemplate(ctx *WebContext) {
 		http.Error(ctx.w, err.Error(), http.StatusInternalServerError)
 	}
 }
-
-/*func Home(w http.ResponseWriter, r *http.Request) {
-	helpers.DisplayTemplate("index", "templates/index.html", w, make(map[string]interface{}))
-}*/

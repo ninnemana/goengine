@@ -1,15 +1,23 @@
 package helpers
 
-import(
-	"net/http"
-	"html/template"
+import (
+	//"net/http"
+	//"html/template"
+	"fmt"
 )
 
-func DisplayTemplate(name string, filename string, w http.ResponseWriter, x map[string]interface{}){
+func DisplayTemplate() {
+	fmt.Println("I am annoyed as hell")
 
-	t := template.Must(template.ParseFiles("layout.html",filename))
-	
+}
+
+/*func DisplayTemplate(ctx *WebContext) {
+	if ctx.layout == "" {
+		ctx.layout = "layout.html"
+	}
+	t := template.Must(template.ParseFiles(ctx.layout, "templates/"+ctx.template))
+
 	if err := t.Execute(w, x); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
+}*/

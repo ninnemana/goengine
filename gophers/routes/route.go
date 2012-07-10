@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"gophers/helpers"
 	"net/http"
 	"regexp"
 	"fmt"
@@ -95,7 +94,6 @@ func (router *Route) Match(w http.ResponseWriter, r *http.Request) (rd *RouteDat
 	}
 
 	url := r.RequestURI
-	fmt.Println(url)
 
 	if router.IsStatic {
 		rd, matched = router.matchStatic(url)
@@ -103,8 +101,6 @@ func (router *Route) Match(w http.ResponseWriter, r *http.Request) (rd *RouteDat
 			return
 		}
 	}
-
-	fmt.Println(r.Header.Get("Method"))
 
 	if router.Method != r.Method {
 		return
@@ -137,7 +133,7 @@ func (router *Route) Match(w http.ResponseWriter, r *http.Request) (rd *RouteDat
 	rd.Params = md
 
 	matched = true
-	helpers.DisplayTemplate("index", "templates/"+rd.Controller+"/"+rd.Action+".html", w, make(map[string]interface{}))
+
 	return
 }
 

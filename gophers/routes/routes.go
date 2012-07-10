@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"gophers/helpers"
 	"net/http"
 )
 
 func start() *RouteTable {
 	rt := &RouteTable{}
+
 	//      var rt = &Route {
 	//          Name: "default",
 	//          Pattern: "/{controller}/{action}/{id}",
@@ -25,10 +27,20 @@ func start() *RouteTable {
 	return rt
 }
 
+type WebContext struct {
+	w        http.ResponseWriter
+	r        *http.Request
+	rd       *RouteData
+	vb       map[string]interface{}
+	layout   string
+	template string
+}
+
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
-	rt := &RouteTable{}
-	rt = start()
+	rt := start()
 	rt.Match(w, r)
+	//ctx := &WebContext{w: w, r: r, rd: rd}
+	helpers.DisplayTemplate()
 }
 
 /*func Home(w http.ResponseWriter, r *http.Request) {

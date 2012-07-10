@@ -8,7 +8,6 @@ import (
 
 func DisplayTemplate() {
 	fmt.Println("I am annoyed as hell")
-
 }
 
 /*func DisplayTemplate(ctx *WebContext) {

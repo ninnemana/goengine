@@ -5,19 +5,21 @@ var (
 )
 
 type Action struct {
-	name string
-	run  func() map[string]interface{}
+	Name string
+	Run  map[string]interface{}
 }
 
 type Controller struct {
-	name    string
-	actions map[string]*Action
+	Name    string
+	Actions map[string]*Action
 }
 
-func init() {
+func GenerateControllers() map[string]*Controller {
 
 	controllerlist["home"] = &Controller{
-		name:    "home",
-		actions: homeActions(),
+		Name:    "home",
+		Actions: homeActions(),
 	}
+
+	return controllerlist
 }

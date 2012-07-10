@@ -39,9 +39,10 @@ type WebContext struct {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rt := start()
+	controllerlist := controllers.GenerateControllers()
 	rd, _ := rt.Match(w, r)
 	ctx := &WebContext{w: w, r: r, rd: rd, template: "templates/" + rd.Controller + "/" + rd.Action + ".html"}
-	ctx.vb = controllerlist[rd.Controller][rd.Action].Run
+	ctx.vb = controllerlist[rd.Controller].Actions[rd.Action].Run
 	DisplayTemplate(ctx)
 }
 

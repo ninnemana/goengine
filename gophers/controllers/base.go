@@ -7,8 +7,8 @@ var (
 type Action struct {
 	Name     string
 	Run      map[string]interface{}
-	template string
-	layout   string
+	Template string
+	Layout   string
 }
 
 type Controller struct {

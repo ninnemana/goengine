@@ -43,10 +43,10 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rd, _ := rt.Match(w, r)
 	ctx := &WebContext{w: w, r: r, rd: rd}
 	ctx.vb = controllerlist[rd.Controller].Actions[rd.Action].Run
-	if controllerlist[rd.Controller].Actions[rd.Action].template == nil {
+	if controllerlist[rd.Controller].Actions[rd.Action].Template == "" {
 		ctx.template = "templates/" + rd.Controller + "/" + rd.Action + ".html"
 	}
-	ctx.layout = controllerlist[rd.Controller].Actions[rd.Action].layout
+	ctx.layout = controllerlist[rd.Controller].Actions[rd.Action].Layout
 	DisplayTemplate(ctx)
 }
 

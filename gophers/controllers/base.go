@@ -5,8 +5,10 @@ var (
 )
 
 type Action struct {
-	Name string
-	Run  map[string]interface{}
+	Name     string
+	Run      map[string]interface{}
+	template string
+	layout   string
 }
 
 type Controller struct {

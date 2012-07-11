@@ -41,8 +41,12 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rt := start()
 	controllerlist := controllers.GenerateControllers()
 	rd, _ := rt.Match(w, r)
-	ctx := &WebContext{w: w, r: r, rd: rd, template: "templates/" + rd.Controller + "/" + rd.Action + ".html"}
+	ctx := &WebContext{w: w, r: r, rd: rd}
 	ctx.vb = controllerlist[rd.Controller].Actions[rd.Action].Run
+	if controllerlist[rd.Controller].Actions[rd.Action].template == nil {
+		ctx.template = "templates/" + rd.Controller + "/" + rd.Action + ".html"
+	}
+	ctx.layout = controllerlist[rd.Controller].Actions[rd.Action].layout
 	DisplayTemplate(ctx)
 }
 

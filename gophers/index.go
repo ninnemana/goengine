@@ -1,11 +1,10 @@
 package site
 
-import(
+import (
 	"gophers/routes"
 	"net/http"
 )
 
-
-func init(){
-	http.HandleFunc("/", routes.Home)
+func init() {
+	http.HandleFunc("/", routes.HandleRoute)
 }

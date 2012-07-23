@@ -1,9 +1,9 @@
-package routes
+package gophers
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
-	"fmt"
 )
 
 var (

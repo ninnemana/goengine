@@ -1,4 +1,9 @@
-package controllers
+package gophers
+
+import (
+	"gophers"
+	"net/http"
+)
 
 var (
 	controllerlist = make(map[string]*Controller)
@@ -16,11 +21,11 @@ type Controller struct {
 	Actions map[string]*Action
 }
 
-func GenerateControllers() map[string]*Controller {
+func GenerateControllers(r *http.Request, rd *RouteData) map[string]*Controller {
 
 	controllerlist["home"] = &Controller{
 		Name:    "home",
-		Actions: homeActions(),
+		Actions: homeActions(r, rd),
 	}
 
 	return controllerlist

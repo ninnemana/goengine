@@ -1,9 +1,8 @@
 package routes
 
 import (
-	"gophers/controllers"
-	"net/http"
 	"html/template"
+	"net/http"
 )
 
 func start() *RouteTable {
@@ -39,9 +38,11 @@ type WebContext struct {
 
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rt := start()
-	controllerlist := controllers.GenerateControllers()
+
 	rd, _ := rt.Match(w, r)
-	ctx := &WebContext{w: w, r: r, rd: rd}
+	ctx := WebContext{w: w, r: r, rd: rd}
+
+	controllerlist := GenerateControllers(ctx)
 	ctx.vb = controllerlist[rd.Controller].Actions[rd.Action].Run
 	if controllerlist[rd.Controller].Actions[rd.Action].Template == "" {
 		ctx.template = "templates/" + rd.Controller + "/" + rd.Action + ".html"
@@ -50,7 +51,7 @@ func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	DisplayTemplate(ctx)
 }
 
-func DisplayTemplate(ctx *WebContext) {
+func DisplayTemplate(ctx WebContext) {
 	if ctx.layout == "" {
 		ctx.layout = "layout.html"
 	}

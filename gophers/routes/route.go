@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
-	"fmt"
 )
 
 var (

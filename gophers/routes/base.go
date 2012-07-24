@@ -1,4 +1,4 @@
-package routes
+package gophers
 
 var (
 	controllerlist = make(map[string]*Controller)

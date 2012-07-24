@@ -1,10 +1,10 @@
-package site
+package main
 
 import (
-	"gophers/routes"
+	"gophers/controllers"
 	"net/http"
 )
 
 func init() {
-	http.HandleFunc("/", routes.HandleRoute)
+	http.HandleFunc("/", gophers.HandleRoute)
 }

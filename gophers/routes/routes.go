@@ -1,7 +1,6 @@
 package gophers
 
 import (
-	"gophers"
 	"html/template"
 	"net/http"
 )
@@ -40,10 +39,9 @@ type WebContext struct {
 func HandleRoute(w http.ResponseWriter, r *http.Request) {
 	rt := start()
 	rd, _ := rt.Match(w, r)
+	ctx := WebContext{w: w, r: r, rd: rd}
 
-	ctx := &WebContext{w: w, r: r, rd: rd}
-
-	controllerlist := controllers.GenerateControllers(ctx)
+	controllerlist := GenerateControllers(ctx)
 	ctx.vb = controllerlist[rd.Controller].Actions[rd.Action].Run
 
 	if controllerlist[rd.Controller].Actions[rd.Action].Template == "" {

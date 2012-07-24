@@ -1,9 +1,5 @@
 package gophers
 
-import (
-	"fmt"
-)
-
 func homeActions(ctx WebContext) map[string]*Action {
 
 	actionlist := make(map[string]*Action)

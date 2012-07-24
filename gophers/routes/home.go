@@ -1,4 +1,4 @@
-package gophers
+package routes
 
 func homeActions(ctx WebContext) map[string]*Action {
 

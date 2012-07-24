@@ -1,4 +1,4 @@
-package gophers
+package routes
 
 import (
 	"fmt"

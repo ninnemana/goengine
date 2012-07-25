@@ -1,6 +1,6 @@
 # GoEngine Boilerplate
 
-GoEngine Boilerplate is combination of serveral different repositories, some made for some not.
+GoEngine Boilerplate is combination of serveral different repositories, some made for Go some not.
 
 The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. The javascript component incorporates RequireJS for dependency management.
 

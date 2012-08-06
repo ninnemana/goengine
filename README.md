@@ -7,11 +7,14 @@ The project is built using routes.go for Sinatra/ExpressJS style routing on the 
 There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /current/google/appengine/ext/go/__init__.py will resolve this issue.
 
 Remove from line 513:
-	request_uri = env['PATH_INFO']
+```
+request_uri = env['PATH_INFO']
+```
 
 Replace with:
-	request_uri = env['_AH_ENCODED_SCRIPT_NAME']
-
+```
+request_uri = env['_AH_ENCODED_SCRIPT_NAME']
+```
 
 Contributors
 -----------

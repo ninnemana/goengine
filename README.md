@@ -4,7 +4,7 @@ GoEngine Boilerplate is combination of serveral different repositories, some mad
 
 The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. The javascript component incorporates RequireJS for dependency management.
 
-There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /current/google/appengine/ext/go/__init__.py will resolve this issue.
+There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /google/appengine/ext/go/__init__.py will resolve this issue.
 
 Remove from line 513:
 ```

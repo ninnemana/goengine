@@ -36,11 +36,12 @@ const (
 )
 
 type Route struct {
-	method  string
-	regex   *regexp.Regexp
-	params  map[int]string
-	handler http.HandlerFunc
-	auth    AuthHandler
+	method    string
+	regex     *regexp.Regexp
+	params    map[int]string
+	handler   http.HandlerFunc
+	auth      AuthHandler
+	sensitive bool
 }
 
 type RouteMux struct {
@@ -97,6 +98,7 @@ func (this *RouteMux) AddRoute(method string, pattern string, handler http.Handl
 	route.regex = regex
 	route.handler = handler
 	route.params = params
+	route.sensitive = false
 
 	//and finally append to the list of Routes
 	this.routes = append(this.routes, route)
@@ -142,6 +144,11 @@ func (this *Route) SecureFunc(handler AuthHandler) *Route {
 	return this
 }
 
+func (this *Route) Sensitive() *Route {
+	this.sensitive = true
+	return this
+}
+
 // Adds a new Route for Static http requests. Serves
 // static files from the specified directory
 func (this *RouteMux) Static(pattern string, dir string) *Route {
@@ -159,18 +166,28 @@ func (this *RouteMux) Static(pattern string, dir string) *Route {
 // http server and will handle all page routing
 func (this *RouteMux) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
-	requestPath := r.URL.Path
-
 	//wrap the response writer, in our custom interface
 	w := &responseWriter{writer: rw}
 
 	//find a matching Route
 	for _, route := range this.routes {
 
+		requestPath := r.URL.Path
+
 		//if the methods don't match, skip this handler
 		//i.e if request.Method is 'PUT' Route.Method must be 'PUT'
 		if r.Method != route.method {
 			continue
+		}
+
+		if route.sensitive == false {
+			str := route.regex.String()
+			reg, err := regexp.Compile(strings.ToLower(str))
+
+			if err == nil {
+				route.regex = reg
+				requestPath = strings.ToLower(requestPath)
+			}
 		}
 
 		//check if Route pattern matches url
@@ -193,6 +210,7 @@ func (this *RouteMux) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 
 		//reassemble query params and add to RawQuery
+
 		r.URL.RawQuery = url.Values(values).Encode()
 
 		//enfore security, if necessary

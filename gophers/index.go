@@ -13,5 +13,5 @@ func init() {
 	mux.Get("/", controllers.Index)
 
 	session_key := "your key here"
-	http.Handle("/", helpers.NewSessionHandler(mux, key, nil))
+	http.Handle("/", helpers.NewSessionHandler(mux, session_key, nil))
 }

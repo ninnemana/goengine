@@ -3,17 +3,22 @@
 
 
 /* TEAM */
-  <your title>: <your name>
-  Site:
-  Twitter:
-  Location:
+  Lead Developer: Alex Ninneman
+  Site: http://ninneman.org
+  Twitter: http://twitter.com/ninnemana
+  Location: Eau Claire, WI
+
+  Developer: Jessica Janiuk
+  Site: http://www.jessicajaniuk.com/
+  Twitter: https://twitter.com/janiukjf
+  Location: El Paso, TX
 
 /* THANKS */
-  Names (& URL):
+  Names (& URL): HTML5 Boilerplate http://html5boilerplate.com, Twitter Bootstrap http://twitter.github.com/bootstrap
 
 /* SITE */
   Standards: HTML5, CSS3
-  Components: Modernizr, jQuery
+  Components: Modernizr, jQuery, RequireJS, Twitter Bootstrap, GoLang
   Software:
 
 

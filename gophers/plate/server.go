@@ -278,6 +278,8 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//wrap the response writer, in our custom interface
 	w := &responseWriter{writer: rw}
 
+	log.Println(r.Header.Get("StatusCode"))
+
 	//find a matching Route
 	for _, route := range this.Routes {
 

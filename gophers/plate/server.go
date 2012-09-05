@@ -278,8 +278,6 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//wrap the response writer, in our custom interface
 	w := &responseWriter{writer: rw}
 
-	log.Println(r.Header.Get("StatusCode"))
-
 	//find a matching Route
 	for _, route := range this.Routes {
 
@@ -790,22 +788,36 @@ func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) 
 	return
 }
 
-func (t Template) DisplayTemplate() {
+func (t Template) SinglePage(file_path string) (err error) {
+	if t.Bag == nil {
+		t.Bag = make(map[string]interface{})
+	}
+	if len(file_path) != 0 {
+		t.Template = file_path
+	}
+
+	tmpl := template.Must(template.ParseFiles(t.Template))
+
+	err = tmpl.Execute(t.Writer, t.Bag)
+
+	return
+}
+
+func (t Template) DisplayTemplate() (err error) {
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
-	templ := template.Must(template.ParseFiles(t.Layout, t.Template))
 
-	if err := templ.Execute(t.Writer, t.Bag); err != nil {
-		log.Printf("Template Error: %v", err.Error())
-		http.Error(t.Writer, err.Error(), http.StatusInternalServerError)
-	}
+	templ := template.Must(template.ParseFiles(t.Layout, t.Template))
+	err = templ.Execute(t.Writer, t.Bag)
+
+	return
 }
 
-func (t Template) DisplayMultiple(templates []string) {
+func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
@@ -817,11 +829,9 @@ func (t Template) DisplayMultiple(templates []string) {
 	for _, filename := range templates {
 		templ.ParseFiles(filename)
 	}
-	if err := templ.Execute(t.Writer, t.Bag); err != nil {
-		log.Printf("Template Error: %v", err.Error())
-		http.Error(t.Writer, err.Error(), http.StatusInternalServerError)
-	}
+	err = templ.Execute(t.Writer, t.Bag)
 
+	return
 }
 
 /* Contextual structs for simpler request/response (AppEngine failure)
@@ -1030,4 +1040,10 @@ func Urlencode(data map[string]string) string {
 	}
 	s := buf.String()
 	return s[0 : len(s)-1]
+}
+
+func Serve404(w http.ResponseWriter, error string) {
+	tmpl, _ := mainServer.Template(w)
+	tmpl.Bag["Error"] = error
+	_ = tmpl.SinglePage("templates/404.html")
 }

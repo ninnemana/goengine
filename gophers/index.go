@@ -2,16 +2,15 @@ package main
 
 import (
 	"gophers/controllers"
-	"gophers/helpers"
-	"gophers/routes"
+	"gophers/plate"
 	"net/http"
 )
 
 func init() {
-	mux := routes.New()
+	server := plate.NewServer("doughboy")
 
-	mux.Get("/", controllers.Index)
+	server.Get("/", controllers.Index)
 
 	session_key := "your key here"
-	http.Handle("/", helpers.NewSessionHandler(mux, session_key, nil))
+	http.Handle("/", server.NewSessionHandler(session_key, nil))
 }

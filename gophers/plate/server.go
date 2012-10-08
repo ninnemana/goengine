@@ -147,6 +147,7 @@ type Template struct {
 	Template string
 	Bag      map[string]interface{}
 	Writer   http.ResponseWriter
+	FuncMap  template.FuncMap
 }
 
 func NewServer(session_key ...string) *Server {
@@ -796,8 +797,7 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = file_path
 	}
 
-	tmpl := template.Must(template.ParseFiles(t.Template))
-
+	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
 	err = tmpl.Execute(t.Writer, t.Bag)
 
 	return
@@ -811,7 +811,8 @@ func (t Template) DisplayTemplate() (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	templ := template.Must(template.ParseFiles(t.Layout, t.Template))
+	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+
 	err = templ.Execute(t.Writer, t.Bag)
 
 	return
@@ -825,7 +826,7 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	templ := template.Must(template.ParseFiles(t.Layout))
+	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	for _, filename := range templates {
 		templ.ParseFiles(filename)
 	}

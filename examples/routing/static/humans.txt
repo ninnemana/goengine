@@ -1,0 +1,48 @@
+/* the humans responsible & colophon */
+/* humanstxt.org */
+
+
+/* TEAM */
+  Lead Developer: Alex Ninneman
+  Site: http://ninneman.org
+  Twitter: http://twitter.com/ninnemana
+  Location: Eau Claire, WI
+
+  Developer: Jessica Janiuk
+  Site: http://www.jessicajaniuk.com/
+  Twitter: https://twitter.com/janiukjf
+  Location: El Paso, TX
+
+/* THANKS */
+  Names (& URL): HTML5 Boilerplate http://html5boilerplate.com, Twitter Bootstrap http://twitter.github.com/bootstrap
+
+/* SITE */
+  Standards: HTML5, CSS3
+  Components: Modernizr, jQuery, RequireJS, Twitter Bootstrap, GoLang
+  Software:
+
+
+
+                               -o/-
+                               +oo//-
+                              :ooo+//:
+                             -ooooo///-
+                             /oooooo//:
+                            :ooooooo+//-
+                           -+oooooooo///-
+           -://////////////+oooooooooo++////////////::
+            :+ooooooooooooooooooooooooooooooooooooo+:::-
+              -/+ooooooooooooooooooooooooooooooo+/::////:-
+                -:+oooooooooooooooooooooooooooo/::///////:-
+                  --/+ooooooooooooooooooooo+::://////:-
+                     -:+ooooooooooooooooo+:://////:--
+                       /ooooooooooooooooo+//////:-
+                      -ooooooooooooooooooo////-
+                      /ooooooooo+oooooooooo//:
+                     :ooooooo+/::/+oooooooo+//-
+                    -oooooo/::///////+oooooo///-
+                    /ooo+::://////:---:/+oooo//:
+                   -o+/::///////:-      -:/+o+//-
+                   :-:///////:-            -:/://
+                     -////:-                 --//:
+                       --                       -:

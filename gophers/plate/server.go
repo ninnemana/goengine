@@ -1044,7 +1044,14 @@ func Urlencode(data map[string]string) string {
 }
 
 func Serve404(w http.ResponseWriter, error string) {
-	tmpl, _ := mainServer.Template(w)
-	tmpl.Bag["Error"] = error
-	_ = tmpl.SinglePage("templates/404.html")
+	bag := make(map[string]interface{})
+
+	tmpl, err := template.New("404.html").ParseFiles("templates/404.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = tmpl.Execute(w, bag)
+	return
 }

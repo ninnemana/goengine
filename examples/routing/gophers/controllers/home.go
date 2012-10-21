@@ -15,3 +15,34 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func World(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello world!")
 }
+
+func ByURL(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	name := params.Get(":name")
+	fmt.Fprintf(w, "Hello %v!", name)
+}
+
+func PostWorld(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	fmt.Fprintf(w, "Hello %v!", name)
+}
+
+func DeleteVegetables(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Let's delete the veggies!")
+}
+
+func PutFruit(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Let's add some fruit!")
+}
+
+func PatchMeat(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Let's patch the meat!")
+}
+
+func Sensi(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "This route is a little sensitive")
+}
+
+func Secure(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "You must be authenticated or something :|")
+}

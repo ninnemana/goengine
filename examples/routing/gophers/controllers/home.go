@@ -5,7 +5,15 @@ import (
 	"fmt"
 	"gophers/plate"
 	"net/http"
+	"time"
 )
+
+type Person struct {
+	First     string
+	Last      string
+	Email     string
+	DateAdded time.Time
+}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	//	fmt.Fprintf(w, "Hello world!")
@@ -45,4 +53,70 @@ func Sensi(w http.ResponseWriter, r *http.Request) {
 
 func Secure(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "You must be authenticated or something :|")
+}
+
+func PeopleJson(w http.ResponseWriter, r *http.Request) {
+	ppl := make([]Person, 0)
+
+	p1 := Person{
+		First:     "Alex",
+		Last:      "Ninneman",
+		Email:     "alex@ninneman.org",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p1)
+
+	p2 := Person{
+		First:     "Jessica",
+		Last:      "Janiuk",
+		Email:     "jessica.janiuk@gmail.com",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p2)
+
+	plate.ServeJson(w, ppl)
+}
+
+func PeopleXml(w http.ResponseWriter, r *http.Request) {
+	ppl := make([]Person, 0)
+
+	p1 := Person{
+		First:     "Alex",
+		Last:      "Ninneman",
+		Email:     "alex@ninneman.org",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p1)
+
+	p2 := Person{
+		First:     "Jessica",
+		Last:      "Janiuk",
+		Email:     "jessica.janiuk@gmail.com",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p2)
+
+	plate.ServeXml(w, ppl)
+}
+
+func PeopleFormatted(w http.ResponseWriter, r *http.Request) {
+	ppl := make([]Person, 0)
+
+	p1 := Person{
+		First:     "Alex",
+		Last:      "Ninneman",
+		Email:     "alex@ninneman.org",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p1)
+
+	p2 := Person{
+		First:     "Jessica",
+		Last:      "Janiuk",
+		Email:     "jessica.janiuk@gmail.com",
+		DateAdded: time.Now(),
+	}
+	ppl = append(ppl, p2)
+
+	plate.ServeFormatted(w, r, ppl)
 }

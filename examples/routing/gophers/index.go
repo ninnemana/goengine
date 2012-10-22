@@ -45,6 +45,14 @@ func init() {
 	server.Get("/secure", controllers.Secure).Secure()                        // Uses our global AuthHandler func
 	server.Get("/secure/special", controllers.Secure).SecureFunc(AuthHandler) // Specified Auth Handler
 
+	// RESTful Responses
+	// These allow us to serve out interfaces as JSON or XML
+	server.Get("/people/json", controllers.PeopleJson) // Will display the JSON response
+	server.Get("/people/xml", controllers.PeopleXml)   // Will display the XML response
+	// In this example we are going to serve the formatted response
+	// depending on what the Accept Header value of the request is assigned to.
+	server.Get("/people", controllers.PeopleFormatted)
+
 	// This will get rendered if none of the about routes pass
 	server.Get("/", controllers.Index)
 

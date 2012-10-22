@@ -1,0 +1,378 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Goengine-boilerplate by ninnemana</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Goengine-boilerplate</h1>
+        <p>Boilerplate for Go intended to be deployed to Google App Engine. Uses some features from HTML5-Boilerplate along with Twitter Bootstrap 2.0</p>
+
+        <p class="view"><a href="https://github.com/ninnemana/goengine-boilerplate">View the Project on GitHub <small>ninnemana/goengine-boilerplate</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/ninnemana/goengine-boilerplate/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/ninnemana/goengine-boilerplate/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/ninnemana/goengine-boilerplate">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>GoEngine Boilerplate</h1>
+
+<p>GoEngine Boilerplate is combination of serveral different repositories, some made for Go some not.</p>
+
+<p>The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.</p>
+
+<h2>Mustache.js</h2>
+
+<p>mustache.js has been converted to use [[ ]] as delimiters so it can play nice with golang's html/template package.</p>
+
+<h2>Issues</h2>
+
+<p>There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /google/appengine/ext/go/__init__.py will resolve this issue.</p>
+
+<p>Remove from line 513:</p>
+
+<pre><code>request_uri = env['PATH_INFO']
+</code></pre>
+
+<p>Replace with:</p>
+
+<pre><code>request_uri = env['_AH_ENCODED_SCRIPT_NAME']
+</code></pre>
+
+<h2>Contributors</h2>
+
+<p><strong>Alex Ninneman</strong></p>
+
+<ul>
+<li><a href="http://twitter.com/ninnemana">http://twitter.com/ninnemana</a></li>
+<li><a href="http://github.com/ninnemana">http://github.com/ninnemana</a></li>
+</ul><p><strong>Jessica Janiuk</strong></p>
+
+<ul>
+<li><a href="http://twitter.com/janiukjf">http://twitter.com/janiukjf</a></li>
+<li><a href="http://github.com/janiukjf">http://github.com/janiukjf</a></li>
+</ul><h1><a href="http://html5boilerplate.com">HTML5 Boilerplate</a></h1>
+
+<p>HTML5 Boilerplate is a professional front-end template that helps you build fast, robust, adaptable, and future-proof websites. Spend more time developing and less time reinventing the wheel.</p>
+
+<p>This project is the product of many years of iterative development and combined community knowledge. It does not impose a specific development philosophy or framework, so you're free to architect your code in the way that you want.</p>
+
+<h2>Quick start</h2>
+
+<p>Clone the git repo - <code>git clone git://github.com/h5bp/html5-boilerplate.git</code> - or <a href="https://github.com/h5bp/html5-boilerplate/zipball/master">download it</a></p>
+
+<h2>Features</h2>
+
+<ul>
+<li>HTML5 ready. Use the new elements with confidence.</li>
+<li>Cross-browser compatible (Chrome, Opera, Safari, Firefox 3.6+, IE6+).</li>
+<li>Designed with progressive enhancement in mind.</li>
+<li>CSS normalizations and common bug fixes.</li>
+<li>IE-specific classes for easier cross-browser control.</li>
+<li>A default print stylesheet, performance optimized.</li>
+<li>Mobile browser optimizations.</li>
+<li>Protection against any stray <code>console.log</code> causing JavaScript errors in IE6/7.</li>
+<li>The latest jQuery via CDN, with a local fallback.</li>
+<li>A custom Modernizr build for feature detection.</li>
+<li>An optimized Google Analytics snippet.</li>
+<li>Apache server caching, compression, and other configuration defaults for Grade-A performance.</li>
+<li>Cross-domain Ajax and Flash.</li>
+<li>"Delete-key friendly." Easy to strip out parts you don't need.</li>
+<li>Extensive inline and accompanying documentation.</li>
+</ul><h2>Contributing</h2>
+
+<p>Anyone and everyone is welcome to <a href="https://github.com/h5bp/html5-boilerplate/wiki/contribute">contribute</a>. Hundreds of developers have helped make the HTML5 Boilerplate what it is today.</p>
+
+<h2>Project information</h2>
+
+<ul>
+<li>Source: <a href="http://github.com/h5bp/html5-boilerplate">http://github.com/h5bp/html5-boilerplate</a>
+</li>
+<li>Web: <a href="http://html5boilerplate.com">http://html5boilerplate.com</a>
+</li>
+<li>Docs: <a href="http://html5boilerplate.com/docs">http://html5boilerplate.com/docs</a>
+</li>
+<li>Twitter: <a href="http://twitter.com/h5bp">http://twitter.com/h5bp</a>
+</li>
+</ul><h2>License</h2>
+
+<h3>Major components:</h3>
+
+<ul>
+<li>jQuery: MIT/GPL license</li>
+<li>Modernizr: MIT/BSD license</li>
+<li>Normalize.css: Public Domain</li>
+</ul><h3>Everything else:</h3>
+
+<p>The Unlicense (aka: public domain)</p>
+
+<h1>
+<a href="http://twitter.github.com/bootstrap">Twitter Bootstrap</a> <a href="http://travis-ci.org/twitter/bootstrap"><img src="https://secure.travis-ci.org/twitter/bootstrap.png" alt="Build Status"></a>
+</h1>
+
+<p>Bootstrap provides simple and flexible HTML, CSS, and Javascript for popular user interface components and interactions. In other words, it's a front-end toolkit for faster, more beautiful web development. It's created and maintained by <a href="http://twitter.com/mdo">Mark Otto</a> and <a href="http://twitter.com/fat">Jacob Thornton</a> at Twitter.</p>
+
+<p>To get started, checkout <a href="http://twitter.github.com/bootstrap">http://twitter.github.com/bootstrap</a>!</p>
+
+<h2>Quick start</h2>
+
+<p>Clone the repo, <code>git clone git://github.com/twitter/bootstrap.git</code>, or <a href="https://github.com/twitter/bootstrap/zipball/master">download the latest release</a>.</p>
+
+<h2>Versioning</h2>
+
+<p>For transparency and insight into our release cycle, and for striving to maintain backward compatibility, Bootstrap will be maintained under the Semantic Versioning guidelines as much as possible.</p>
+
+<p>Releases will be numbered with the follow format:</p>
+
+<p><code>&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</code></p>
+
+<p>And constructed with the following guidelines:</p>
+
+<ul>
+<li>Breaking backward compatibility bumps the major (and resets the minor and patch)</li>
+<li>New additions without breaking backward compatibility bumps the minor (and resets the patch)</li>
+<li>Bug fixes and misc changes bumps the patch</li>
+</ul><p>For more information on SemVer, please visit <a href="http://semver.org/">http://semver.org/</a>.</p>
+
+<h2>Bug tracker</h2>
+
+<p>Have a bug? Please create an issue here on GitHub! Also, when filing please make sure you're familiar with <a href="https://github.com/necolas/issue-guidelines">necolas's guidelines</a>. thanks! &lt;3</p>
+
+<p><a href="https://github.com/twitter/bootstrap/issues">https://github.com/twitter/bootstrap/issues</a></p>
+
+<h2>Twitter account</h2>
+
+<p>Keep up to date on announcements and more by following Bootstrap on Twitter, <a href="http://twitter.com/TwBootstrap">@TwBootstrap</a>.</p>
+
+<h2>Blog</h2>
+
+<p>Read more detailed announcements, discussions, and more on <a href="http://blog.getbootstrap.com">The Official Twitter Bootstrap Blog</a>.</p>
+
+<h2>Mailing list</h2>
+
+<p>Have a question? Ask on our mailing list!</p>
+
+<p><a href="mailto:twitter-bootstrap@googlegroups.com">twitter-bootstrap@googlegroups.com</a></p>
+
+<p><a href="http://groups.google.com/group/twitter-bootstrap">http://groups.google.com/group/twitter-bootstrap</a></p>
+
+<h2>IRC</h2>
+
+<p>Server: irc.freenode.net</p>
+
+<p>Channel: ##twitter-bootstrap (the double ## is not a typo)</p>
+
+<h2>Developers</h2>
+
+<p>We have included a makefile with convenience methods for working with the Bootstrap library.</p>
+
+<ul>
+<li>
+<strong>dependencies</strong>
+Our makefile depends on you having recess, uglify.js, and jshint installed. To install, just run the following command in npm:</li>
+</ul><pre><code>$ npm install recess uglify-js jshint -g
+</code></pre>
+
+<ul>
+<li><p><strong>build</strong> - <code>make</code>
+Runs the recess compiler to rebuild the <code>/less</code> files and compiles the docs pages. Requires recess and uglify-js. <a href="http://twitter.github.com/bootstrap/less.html#compiling">Read more in our docs »</a></p></li>
+<li><p><strong>test</strong> - <code>make test</code>
+Runs jshint and qunit tests headlessly in phantom js (used for ci). Depends on having phatomjs installed.</p></li>
+<li><p><strong>watch</strong> - <code>make watch</code>
+This is a convenience method for watching just Less files and automatically building them whenever you save. Requires the Watchr gem.</p></li>
+</ul><h2>Contributing</h2>
+
+<p>Please make all pull requests against wip-* branches. Also, if your unit test contains javascript patches or features - you must include relevant unit tests. Thanks!</p>
+
+<h2>Authors</h2>
+
+<p><strong>Mark Otto</strong></p>
+
+<ul>
+<li><a href="http://twitter.com/mdo">http://twitter.com/mdo</a></li>
+<li><a href="http://github.com/markdotto">http://github.com/markdotto</a></li>
+</ul><p><strong>Jacob Thornton</strong></p>
+
+<ul>
+<li><a href="http://twitter.com/fat">http://twitter.com/fat</a></li>
+<li><a href="http://github.com/fat">http://github.com/fat</a></li>
+</ul><h2>Copyright and license</h2>
+
+<p>Copyright 2012 Twitter, Inc.</p>
+
+<p>Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this work except in compliance with the License.
+You may obtain a copy of the License in the LICENSE file, or at:</p>
+
+<p><a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+
+<h1>routes.go</h1>
+
+<p>a simple http routing API for the Go programming language</p>
+
+<pre><code>go get github.com/bradrydzewski/routes
+</code></pre>
+
+<p>this project combines the best of <code>web.go</code> and <code>pat.go</code>. It uses <code>pat.go</code>'s named url parameters (ie <code>:param</code>) and <code>web.go</code>'s regular expression groups for url matching and parameter extraction, which provides significant performance improvements.</p>
+
+<p>for more information see:
+<a href="http://gopkgdoc.appspot.com/pkg/github.com/bradrydzewski/routes">http://gopkgdoc.appspot.com/pkg/github.com/bradrydzewski/routes</a></p>
+
+<h2>Getting Started</h2>
+
+<pre><code>package main
+
+import (
+    "fmt"
+    "github.com/bradrydzewski/routes"
+    "net/http"
+)
+
+func Whoami(w http.ResponseWriter, r *http.Request) {
+    params := r.URL.Query()
+    lastName := params.Get(":last")
+    firstName := params.Get(":first")
+    fmt.Fprintf(w, "you are %s %s", firstName, lastName)
+}
+
+func main() {
+    mux := routes.New()
+    mux.Get("/:last/:first", Whoami)
+
+    http.Handle("/", mux)
+    http.ListenAndServe(":8088", nil)
+}
+</code></pre>
+
+<h3>Route Examples</h3>
+
+<p>You can create routes for all http methods:</p>
+
+<pre><code>mux.Get("/:param", handler)
+mux.Put("/:param", handler)
+mux.Post("/:param", handler)
+mux.Patch("/:param", handler)
+mux.Del("/:param", handler)
+</code></pre>
+
+<p>You can specify custom regular expressions for routes:</p>
+
+<pre><code>mux.Get("/files/:param(.+)", handler)
+</code></pre>
+
+<p>You can also create routes for static files:</p>
+
+<pre><code>pwd, _ := os.Getwd()
+mux.Static("/static", pwd)
+</code></pre>
+
+<p>this will serve any files in <code>/static</code>, including files in subdirectories. For example <code>/static/logo.gif</code> or <code>/static/style/main.css</code>.</p>
+
+<h2>Helper Functions</h2>
+
+<p>You can use helper functions for serializing to Json and Xml. I found myself constantly writing code to serialize, set content type, content length, etc. Feel free to use these functions to eliminate redundant code in your app.</p>
+
+<p>Helper function for serving Json, sets content type to <code>application/json</code>:</p>
+
+<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
+    mystruct := { ... }
+    routes.ServeJson(w, &amp;mystruct)
+}
+</code></pre>
+
+<p>Helper function for serving Xml, sets content type to <code>application/xml</code>:</p>
+
+<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
+    mystruct := { ... }
+    routes.ServeXml(w, &amp;mystruct)
+}
+</code></pre>
+
+<p>Helper function to serve Xml OR Json, depending on the value of the <code>Accept</code> header:</p>
+
+<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
+    mystruct := { ... }
+    routes.ServeFormatted(w, r, &amp;mystruct)
+}
+</code></pre>
+
+<h2>Security</h2>
+
+<p>You can restrict access to routes by assigning an <code>AuthHandler</code> to a route.</p>
+
+<p>Here is an example using a custom <code>AuthHandler</code> per route. Image we are doing some type of Basic authentication:</p>
+
+<pre><code>func authHandler(w http.ResponseWriter, r *http.Request) bool {
+    user := r.URL.User.Username()
+    password := r.URL.User.Password()
+    if user != "xxx" &amp;&amp; password != "xxx" {
+        // if we wanted, we could do an http.Redirect here
+        return false
+    }
+    return true
+}
+
+mux.Get("/:param", handler).SecureFunc(authHandler)
+</code></pre>
+
+<p>If you plan to use the same <code>AuthHandler</code> to secure all of your routes, you may want to set the <code>DefaultAuthHandler</code>:</p>
+
+<pre><code>routes.DefaulAuthHandler = authHandler
+mux.Get("/:param", handler).Secure()
+mux.Get("/:param", handler).Secure()
+</code></pre>
+
+<h3>OAuth2</h3>
+
+<p>In the above examples, we implemented our own custom <code>AuthHandler</code>. Check out the <a href="https://github.com/bradrydzewski/auth.go">auth.go</a> API which provides custom AuthHandlers for OAuth2 providers such as Google and Github.</p>
+
+<h2>Logging</h2>
+
+<p>Logging is enabled by default, but can be disabled:</p>
+
+<pre><code>mux.Logging = false
+</code></pre>
+
+<p>You can also specify your logger:</p>
+
+<pre><code>mux.Logger = log.New(os.Stdout, "", 0)
+</code></pre>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/ninnemana">ninnemana</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-35706556-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>

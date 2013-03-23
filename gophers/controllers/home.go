@@ -7,6 +7,11 @@ import (
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	//	fmt.Fprintf(w, "Hello world!")
-	plate.Serve404(w, "")
+	server := plate.NewServer()
+
+	tmpl, _ := server.Template(w)
+
+	tmpl.Template = "templates/index.html"
+
+	tmpl.DisplayTemplate()
 }

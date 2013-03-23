@@ -1,28 +1,20 @@
 package plate
 
 import (
-	"bufio"
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
+	"compress/gzip"
 	"crypto/hmac"
-	"crypto/rand"
 	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/subtle"
 	"encoding/base64"
-	"encoding/gob"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"hash"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
 	"mime"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,7 +25,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 	//"webTime"
 )
@@ -90,15 +81,8 @@ type Server struct {
 	Logger         *log.Logger
 	SessionHandler *SessionHandler
 	Config         *ServerConfig
-}
-
-type Route struct {
-	method    string
-	regex     *regexp.Regexp
-	params    map[int]string
-	handler   http.HandlerFunc
-	auth      AuthHandler
-	sensitive bool
+	Filters        []http.HandlerFunc
+	StatusService  *StatusService
 }
 
 //responseWriter is a wrapper for the http.ResponseWriter
@@ -112,42 +96,9 @@ type responseWriter struct {
 	status  int
 }
 
-type sessionResponseWriter struct {
+type gzipResponseWriter struct {
+	io.Writer
 	http.ResponseWriter
-	h   *SessionHandler
-	req *http.Request
-	// int32 so we can use the sync/atomic functions on it
-	wroteHeader int32
-}
-
-type SessionHandler struct {
-	http.Handler
-	CookieName string // name of the cookie to store our session in
-	CookiePath string // resource path the cookie is valid for
-	RS         *RequestSessions
-	encKey     []byte
-	hmacKey    []byte
-}
-
-type RequestSessions struct {
-	HttpOnly bool // don't allow javascript to access cookie
-	Secure   bool // only send session over HTTPS
-	lk       sync.Mutex
-	m        map[*http.Request]map[string]interface{}
-	// stores a hash of the serialized session (the gob) that we
-	// received with the start of the request.  Before setting a
-	// cookie for the reply, check to see if the session has
-	// actually changed.  If it hasn't, then we don't need to send
-	// a new cookie.
-	hm map[*http.Request][]byte
-}
-
-type Template struct {
-	Layout   string
-	Template string
-	Bag      map[string]interface{}
-	Writer   http.ResponseWriter
-	FuncMap  template.FuncMap
 }
 
 func NewServer(session_key ...string) *Server {
@@ -164,6 +115,8 @@ func NewServer(session_key ...string) *Server {
 	if len(session_key) != 0 && len(session_key[0]) != 0 {
 		server.NewSessionHandler(session_key[0], nil)
 	}
+
+	server.StatusService = NewStatusService()
 	return server
 }
 
@@ -206,7 +159,7 @@ func (this *Server) AddRoute(method string, pattern string, handler http.Handler
 	route := &Route{}
 	route.method = method
 	route.regex = regex
-	route.handler = handler
+	route.handler = makeGzipHandler(handler)
 	route.params = params
 	route.sensitive = false
 
@@ -242,23 +195,6 @@ func (this *Server) Post(pattern string, handler http.HandlerFunc) *Route {
 	return this.AddRoute(POST, pattern, handler)
 }
 
-// Secures a route using the default AuthHandler
-func (this *Route) Secure() *Route {
-	this.auth = DefaultAuthHandler
-	return this
-}
-
-// SecureFunc a route using a custom AuthHandler function
-func (this *Route) SecureFunc(handler AuthHandler) *Route {
-	this.auth = handler
-	return this
-}
-
-func (this *Route) Sensitive() *Route {
-	this.sensitive = true
-	return this
-}
-
 // Adds a new Route for Static http requests. Serves
 // static files from the specified directory
 func (this *Server) Static(pattern string, dir string) *Route {
@@ -272,9 +208,31 @@ func (this *Server) Static(pattern string, dir string) *Route {
 	})
 }
 
+// Add middleware filter globally to server
+func (this *Server) AddFilter(filter http.HandlerFunc) {
+	this.Filters = append(this.Filters, filter)
+}
+
+// FIlterParam adds the middleware filter if the REST URL parameter exists.
+func (this *Server) FilterParam(param string, filter http.HandlerFunc) {
+	if !strings.HasPrefix(param, ":") {
+		param = ":" + param
+	}
+
+	this.AddFilter(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Query().Get(param)
+		if len(p) > 0 {
+			filter(w, r)
+		}
+	})
+}
+
 // Required by http.Handler interface. This method is invoked by the
 // http server and will handle all page routing
 func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+
+	start_time := time.Now()
+	requestPath := r.URL.Path
 
 	//wrap the response writer, in our custom interface
 	w := &responseWriter{writer: rw}
@@ -282,14 +240,13 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	//find a matching Route
 	for _, route := range this.Routes {
 
-		requestPath := r.URL.Path
-
 		//if the methods don't match, skip this handler
 		//i.e if request.Method is 'PUT' Route.Method must be 'PUT'
 		if r.Method != route.method {
 			continue
 		}
 
+		// check if route is case sensitive or not
 		if route.sensitive == false {
 			str := route.regex.String()
 			reg, err := regexp.Compile(strings.ToLower(str))
@@ -313,32 +270,42 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		//add url parameters to the query param map
-		values := r.URL.Query()
-		for i, match := range matches[1:] {
-			values.Add(route.params[i], match)
+		if len(route.params) > 0 {
+			//add url parameters to the query param map
+			values := r.URL.Query()
+			for i, match := range matches[1:] {
+				values.Add(route.params[i], match)
+			}
+
+			//reassemble query params and add to RawQuery
+			r.URL.RawQuery = url.Values(values).Encode() + "&" + r.URL.RawQuery
+			//r.URL.RawQuery = url.Values(values).Encode()
 		}
 
-		//reassemble query params and add to RawQuery
+		if !route.unfiltered {
+			// execute global middleware filters
+			for _, filter := range this.Filters {
+				//go func() {
+				filter(w, r)
+				//}()
+				if w.started {
+					return
+				}
+			}
+		}
 
-		r.URL.RawQuery = url.Values(values).Encode()
-
-		//enfore security, if necessary
-		if route.auth != nil {
-			//autenticate the user
-			ok := route.auth(w, r)
-			//if the auth handler redirected the user
-			//or already wrote a response, we can just exit
+		//execute middleware filters for this route
+		for _, filter := range route.filters {
+			go func() {
+				filter(w, r)
+			}()
 			if w.started {
 				return
-			} else if ok == false {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			}
 		}
 
 		//Invoke the request handler
 		route.handler(w, r)
-
 		break
 	}
 
@@ -347,11 +314,32 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 
+	end_time := time.Now()
+	dur := end_time.Sub(start_time)
+	this.StatusService.Update(w.status, &dur)
+
 	//if logging is turned on
 	if this.Logging {
 		this.Logger.Printf(LOG, r.RemoteAddr, time.Now().String(), r.Method,
 			r.URL.Path, r.Proto, w.status, w.size,
 			r.Referer(), r.UserAgent())
+	}
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func makeGzipHandler(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			fn(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		fn(gzipResponseWriter{Writer: gz, ResponseWriter: w}, r)
 	}
 }
 
@@ -380,21 +368,6 @@ func (this *responseWriter) WriteHeader(code int) {
 }
 
 // ---------------------------------------------------------------------------------
-// Authentication helper functions to enable user authentication
-
-type AuthHandler func(http.ResponseWriter, *http.Request) bool
-
-// DefaultAuthHandler will be applied to any route when the Secure() function
-// is invoked, as opposed to SecureFunc(), which accepts a custom AuthHandler.
-//
-// By default, the DefaultAuthHandler will deny all requests. This value
-// should be replaced with a custom AuthHandler implementation, as this
-// is just a dummy function.
-var DefaultAuthHandler = func(w http.ResponseWriter, r *http.Request) bool {
-	return false
-}
-
-// ---------------------------------------------------------------------------------
 // Below are helper functions to replace boilerplate
 // code that serializes resources and writes to the
 // http response.
@@ -402,14 +375,17 @@ var DefaultAuthHandler = func(w http.ResponseWriter, r *http.Request) bool {
 // ServeJson replies to the request with a JSON
 // representation of resource v.
 func ServeJson(w http.ResponseWriter, v interface{}) {
-	content, err := json.MarshalIndent(v, "", "  ")
+	content, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Write(content)
 	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
 	w.Header().Set("Content-Type", applicationJson)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Origin")
+	w.Write(content)
 }
 
 // ReadJson will parses the JSON-encoded data in the http
@@ -470,301 +446,6 @@ func ServeFormatted(w http.ResponseWriter, r *http.Request, v interface{}) {
 /* End Routing
    ------------------------------- */
 
-/* Session worker
-   ------------------------------- */
-
-func (rs *RequestSessions) Get(req *http.Request) map[string]interface{} {
-	rs.lk.Lock()
-	defer rs.lk.Unlock()
-
-	if rs.m == nil {
-		log.Printf(LOG, "seshcookie: warning! trying to get session "+
-			"data for unknown request. Perhaps your handler "+
-			"isn't wrapped by a SessionHandler?")
-		return nil
-	}
-
-	return rs.m[req]
-}
-
-func (rs *RequestSessions) getHash(req *http.Request) []byte {
-	rs.lk.Lock()
-	defer rs.lk.Unlock()
-
-	if rs.hm == nil {
-		return nil
-	}
-
-	return rs.hm[req]
-}
-
-func (rs *RequestSessions) Set(req *http.Request, val map[string]interface{}, gobHash []byte) {
-	rs.lk.Lock()
-	defer rs.lk.Unlock()
-
-	if rs.m == nil {
-		rs.m = map[*http.Request]map[string]interface{}{}
-		rs.hm = map[*http.Request][]byte{}
-	}
-
-	rs.m[req] = val
-	rs.hm[req] = gobHash
-}
-
-func (rs *RequestSessions) Clear(req *http.Request) {
-	rs.lk.Lock()
-	defer rs.lk.Unlock()
-
-	delete(rs.m, req)
-	delete(rs.hm, req)
-}
-
-func encodeGob(obj interface{}) ([]byte, error) {
-	buf := bytes.NewBuffer(nil)
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(obj)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func decodeGob(encoded []byte) (map[string]interface{}, error) {
-	buf := bytes.NewBuffer(encoded)
-	dec := gob.NewDecoder(buf)
-	var out map[string]interface{}
-	err := dec.Decode(&out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// encode uses the given block cipher (in CTR mode) to encrypt the
-// data, along with a hash, returning the iv and the ciphertext. What
-// is returned looks like:
-//
-//   encrypted(salt + sessionData) + iv + hmac
-//
-func encode(block cipher.Block, hmac hash.Hash, data []byte) ([]byte, error) {
-
-	buf := bytes.NewBuffer(nil)
-
-	salt := make([]byte, block.BlockSize())
-	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
-		return nil, err
-	}
-	buf.Write(salt)
-	buf.Write(data)
-
-	session := buf.Bytes()
-
-	iv := make([]byte, block.BlockSize())
-	if _, err := rand.Read(iv); err != nil {
-		return nil, err
-	}
-
-	stream := cipher.NewCTR(block, iv)
-	stream.XORKeyStream(session, session)
-
-	buf.Write(iv)
-	hmac.Write(buf.Bytes())
-	buf.Write(hmac.Sum(nil))
-
-	return buf.Bytes(), nil
-}
-
-func encodeCookie(content interface{}, encKey, hmacKey []byte) (string, []byte, error) {
-	encodedGob, err := encodeGob(content)
-	if err != nil {
-		return "", nil, err
-	}
-
-	gobHash := sha1.New()
-	gobHash.Write(encodedGob)
-
-	aesCipher, err := aes.NewCipher(encKey)
-	if err != nil {
-		return "", nil, err
-	}
-
-	hmacHash := hmac.New(sha256.New, hmacKey)
-
-	sessionBytes, err := encode(aesCipher, hmacHash, encodedGob)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return base64.StdEncoding.EncodeToString(sessionBytes), gobHash.Sum(nil), nil
-}
-
-// decode uses the given block cipher (in CTR mode) to decrypt the
-// data, and validate the hash.  If hash validation fails, an error is
-// returned.
-func decode(block cipher.Block, hmac hash.Hash, ciphertext []byte) ([]byte, error) {
-	if len(ciphertext) < 2*block.BlockSize()+hmac.Size() {
-		return nil, LenError
-	}
-
-	receivedHmac := ciphertext[len(ciphertext)-hmac.Size():]
-	ciphertext = ciphertext[:len(ciphertext)-hmac.Size()]
-
-	hmac.Write(ciphertext)
-	if subtle.ConstantTimeCompare(hmac.Sum(nil), receivedHmac) != 1 {
-		return nil, HashError
-	}
-
-	// split the iv and session bytes
-	iv := ciphertext[len(ciphertext)-block.BlockSize():]
-	session := ciphertext[:len(ciphertext)-block.BlockSize()]
-
-	stream := cipher.NewCTR(block, iv)
-	stream.XORKeyStream(session, session)
-
-	// skip past the iv
-	session = session[block.BlockSize():]
-
-	return session, nil
-}
-
-func decodeCookie(encoded string, encKey, hmacKey []byte) (map[string]interface{}, []byte, error) {
-	sessionBytes, err := base64.StdEncoding.DecodeString(encoded)
-	if err != nil {
-		return nil, nil, err
-	}
-	aesCipher, err := aes.NewCipher(encKey)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	hmacHash := hmac.New(sha256.New, hmacKey)
-	gobBytes, err := decode(aesCipher, hmacHash, sessionBytes)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	gobHash := sha1.New()
-	gobHash.Write(gobBytes)
-
-	session, err := decodeGob(gobBytes)
-	if err != nil {
-		log.Printf("decodeGob: %s\n", err)
-		return nil, nil, err
-	}
-	return session, gobHash.Sum(nil), nil
-}
-
-func (s sessionResponseWriter) WriteHeader(code int) {
-	if atomic.AddInt32(&s.wroteHeader, 1) == 1 {
-		origCookie, err := s.req.Cookie(s.h.CookieName)
-		var origCookieVal string
-		if err != nil {
-			origCookieVal = ""
-		} else {
-			origCookieVal = origCookie.Value
-		}
-
-		session := s.h.RS.Get(s.req)
-		if len(session) == 0 {
-			// if we have an empty session, but the
-			// request didn't start out that way, we
-			// assume the user wants us to clear the
-			// session
-			if origCookieVal != "" {
-				//log.Println("clearing cookie")
-				var cookie http.Cookie
-				cookie.Name = s.h.CookieName
-				cookie.Value = ""
-				cookie.Path = "/"
-				// a cookie is expired by setting it
-				// with an expiration time in the past
-				cookie.Expires = time.Unix(0, 0).UTC()
-				http.SetCookie(s, &cookie)
-			}
-			goto write
-		}
-		encoded, gobHash, err := encodeCookie(session, s.h.encKey, s.h.hmacKey)
-		if err != nil {
-			log.Printf("createCookie: %s\n", err)
-			goto write
-		}
-
-		if bytes.Equal(gobHash, s.h.RS.getHash(s.req)) {
-			//log.Println("not re-setting identical cookie")
-			goto write
-		}
-
-		var cookie http.Cookie
-		cookie.Name = s.h.CookieName
-		cookie.Value = encoded
-		cookie.Path = s.h.CookiePath
-		cookie.HttpOnly = s.h.RS.HttpOnly
-		cookie.Secure = s.h.RS.Secure
-		http.SetCookie(s, &cookie)
-	}
-write:
-	s.ResponseWriter.WriteHeader(code)
-}
-
-func (s sessionResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	hijacker, _ := s.ResponseWriter.(http.Hijacker)
-	return hijacker.Hijack()
-}
-
-func (h *SessionHandler) getCookieSession(req *http.Request) (map[string]interface{}, []byte) {
-	cookie, err := req.Cookie(h.CookieName)
-	if err != nil {
-		//log.Printf("getCookieSesh: '%#v' not found\n",
-		//	h.CookieName)
-		return map[string]interface{}{}, nil
-	}
-	session, gobHash, err := decodeCookie(cookie.Value, h.encKey, h.hmacKey)
-	if err != nil {
-		log.Printf("decodeCookie: %s\n", err)
-		return map[string]interface{}{}, nil
-	}
-
-	return session, gobHash
-}
-
-func (h *SessionHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	// get our session a little early, so that we can add our
-	// authentication information to it if we get some
-	session, gobHash := h.getCookieSession(req)
-
-	h.RS.Set(req, session, gobHash)
-	defer h.RS.Clear(req)
-
-	sessionWriter := sessionResponseWriter{rw, h, req, 0}
-	h.Handler.ServeHTTP(sessionWriter, req)
-}
-
-func (this *Server) NewSessionHandler(key string, rs *RequestSessions) *SessionHandler {
-	// sha1 sums are 20 bytes long.  we use the first 16 bytes as
-	// the aes key.
-	encHash := sha1.New()
-	encHash.Write([]byte(key))
-	encHash.Write([]byte("-encryption"))
-	hmacHash := sha1.New()
-	hmacHash.Write([]byte(key))
-	hmacHash.Write([]byte("-hmac"))
-
-	// if the user hasn't specified a session handler, use the
-	// package's default one
-	if rs == nil {
-		rs = Session
-	}
-
-	return &SessionHandler{
-		Handler:    this,
-		CookieName: "session",
-		CookiePath: "/",
-		RS:         rs,
-		encKey:     encHash.Sum(nil)[:blockSize],
-		hmacKey:    hmacHash.Sum(nil)[:blockSize],
-	}
-}
-
 /* Logging
    ------------------------------ */
 
@@ -774,65 +455,6 @@ func (this *Server) SetLogger(logger *log.Logger) {
 
 func SetLogger(logger *log.Logger) {
 	mainServer.Logger = logger
-}
-
-/* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
-   ------------------------------ */
-
-func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) {
-	if w == nil {
-		log.Printf("Template Error: %v", err.Error())
-		return
-	}
-	templ.Writer = w
-	templ.Bag = make(map[string]interface{})
-	return
-}
-
-func (t Template) SinglePage(file_path string) (err error) {
-	if t.Bag == nil {
-		t.Bag = make(map[string]interface{})
-	}
-	if len(file_path) != 0 {
-		t.Template = file_path
-	}
-
-	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
-	err = tmpl.Execute(t.Writer, t.Bag)
-
-	return
-}
-
-func (t Template) DisplayTemplate() (err error) {
-	if t.Layout == "" {
-		t.Layout = "layout.html"
-	}
-	if t.Bag == nil {
-		t.Bag = make(map[string]interface{})
-	}
-
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
-
-	err = templ.Execute(t.Writer, t.Bag)
-
-	return
-}
-
-func (t Template) DisplayMultiple(templates []string) (err error) {
-	if t.Layout == "" {
-		t.Layout = "layout.html"
-	}
-	if t.Bag == nil {
-		t.Bag = make(map[string]interface{})
-	}
-
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
-	for _, filename := range templates {
-		templ.ParseFiles(filename)
-	}
-	err = templ.Execute(t.Writer, t.Bag)
-
-	return
 }
 
 /* Contextual structs for simpler request/response (AppEngine failure)
@@ -1054,4 +676,88 @@ func Serve404(w http.ResponseWriter, error string) {
 
 	err = tmpl.Execute(w, bag)
 	return
+}
+
+type StatusService struct {
+	Lock              sync.Mutex
+	Start             time.Time
+	Pid               int
+	ResponseCounts    map[string]int
+	TotalResponseTime time.Time
+}
+
+func NewStatusService() *StatusService {
+	return &StatusService{
+		Start:             time.Now(),
+		Pid:               os.Getpid(),
+		ResponseCounts:    map[string]int{},
+		TotalResponseTime: time.Time{},
+	}
+}
+
+func (self *StatusService) Update(status_code int, response_time *time.Duration) {
+	self.Lock.Lock()
+	self.ResponseCounts[fmt.Sprintf("%d", status_code)]++
+	self.TotalResponseTime = self.TotalResponseTime.Add(*response_time)
+	self.Lock.Unlock()
+}
+
+type Status struct {
+	Pid                    int
+	UpTime                 string
+	UpTimeSec              float64
+	Time                   string
+	TimeUnix               int64
+	StatusCodeCount        map[string]int
+	TotalCount             int
+	TotalResponseTime      string
+	TotalResponseTimeSec   float64
+	AverageResponseTime    string
+	AverageResponseTimeSec float64
+}
+
+func (self *StatusService) GetStatus(w http.ResponseWriter, r *http.Request) {
+
+	now := time.Now()
+
+	uptime := now.Sub(self.Start)
+
+	total_count := 0
+	for _, count := range self.ResponseCounts {
+		total_count += count
+	}
+
+	TotalResponseTime := self.TotalResponseTime.Sub(time.Time{})
+
+	average_response_time := time.Duration(0)
+	if total_count > 0 {
+		avg_ns := int64(TotalResponseTime) / int64(total_count)
+		average_response_time = time.Duration(avg_ns)
+	}
+
+	st := &Status{
+		Pid:                    self.Pid,
+		UpTime:                 uptime.String(),
+		UpTimeSec:              uptime.Seconds(),
+		Time:                   now.String(),
+		TimeUnix:               now.Unix(),
+		StatusCodeCount:        self.ResponseCounts,
+		TotalCount:             total_count,
+		TotalResponseTime:      TotalResponseTime.String(),
+		TotalResponseTimeSec:   TotalResponseTime.Seconds(),
+		AverageResponseTime:    average_response_time.String(),
+		AverageResponseTimeSec: average_response_time.Seconds(),
+	}
+
+	jsonBytes, err := json.Marshal(st)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	// var buf bytes.Buffer
+	// buf.Write(jsonBytes)
+	_, err = w.Write(jsonBytes)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }

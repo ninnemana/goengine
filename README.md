@@ -4,8 +4,7 @@ GoEngine Boilerplate is combination of serveral different repositories, some mad
 
 The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.
 
-**IMPORTANT**: If you are using Google AppEngine, use the __main__ branch.
-               If you are **__not__** using Google AppEngine, use the __non-appengine__ branch.
+**IMPORTANT**: If you are using Google AppEngine, use the _master_ branch. If you are **not** using Google AppEngine, use the _non-appengine_ branch.
 
 Mustache.js
 -----------

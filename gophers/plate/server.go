@@ -1,11 +1,9 @@
 package plate
 
 import (
+	"../helpers/mimeTypes"
 	"bytes"
 	"compress/gzip"
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -14,13 +12,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -42,11 +37,6 @@ const (
 
 	// log format, modeled after http://wiki.nginx.org/HttpLogModule
 	LOG = `%s - - [%s] "%s %s %s" %d %d "%s" "%s"`
-
-	// commonly used mime types
-	applicationJson = "application/json"
-	applicationXml  = "applicatoin/xml"
-	textXml         = "text/xml"
 
 	blockSize = 16 // we want 16 byte blocks, for AES-128
 )
@@ -122,7 +112,6 @@ func NewServer(session_key ...string) *Server {
 
 // Adds a new Route to the Handler
 func (this *Server) AddRoute(method string, pattern string, handler http.HandlerFunc) *Route {
-
 	//split the url into sections
 	parts := strings.Split(pattern, "/")
 
@@ -162,6 +151,7 @@ func (this *Server) AddRoute(method string, pattern string, handler http.Handler
 	route.handler = makeGzipHandler(handler)
 	route.params = params
 	route.sensitive = false
+	route.contenttype = mimeTypes.TextHtml
 
 	//and finally append to the list of Routes
 	this.Routes = append(this.Routes, route)
@@ -304,6 +294,8 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		w.Header().Set("Content-Type", route.contenttype)
+
 		//Invoke the request handler
 		route.handler(w, r)
 		break
@@ -381,7 +373,7 @@ func ServeJson(w http.ResponseWriter, v interface{}) {
 		return
 	}
 	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
-	w.Header().Set("Content-Type", applicationJson)
+	w.Header().Set("Content-Type", mimeTypes.ApplicationJson)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin")
@@ -410,7 +402,7 @@ func ServeXml(w http.ResponseWriter, v interface{}) {
 	}
 	w.Write(content)
 	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
-	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+	w.Header().Set("Content-Type", mimeTypes.TextXml)
 }
 
 // ReadXml will parses the XML-encoded data in the http
@@ -432,9 +424,9 @@ func ReadXml(r *http.Request, v interface{}) error {
 func ServeFormatted(w http.ResponseWriter, r *http.Request, v interface{}) {
 	accept := r.Header.Get("Accept")
 	switch accept {
-	case applicationJson:
+	case mimeTypes.ApplicationJsonShort:
 		ServeJson(w, v)
-	case applicationXml, textXml:
+	case mimeTypes.ApplicationXmlShort, mimeTypes.TextXmlShort:
 		ServeXml(w, v)
 	default:
 		ServeJson(w, v)
@@ -455,162 +447,6 @@ func (this *Server) SetLogger(logger *log.Logger) {
 
 func SetLogger(logger *log.Logger) {
 	mainServer.Logger = logger
-}
-
-/* Contextual structs for simpler request/response (AppEngine failure)
-   ------------------------------------- */
-
-type Context struct {
-	Request *http.Request
-	Params  map[string]string
-	Server  *Server
-	ResponseWriter
-}
-
-type ResponseWriter interface {
-	Header() http.Header
-	WriteHeader(status int)
-	Write(data []byte) (n int, err error)
-	Close()
-}
-
-func (ctx *Context) WriteString(content string) {
-	ctx.ResponseWriter.Write([]byte(content))
-}
-
-func (ctx *Context) Abort(status int, body string) {
-	ctx.ResponseWriter.WriteHeader(status)
-	ctx.ResponseWriter.Write([]byte(body))
-}
-
-func (ctx *Context) Redirect(status int, url_ string) {
-	ctx.ResponseWriter.Header().Set("Location", url_)
-	ctx.ResponseWriter.WriteHeader(status)
-	ctx.ResponseWriter.Write([]byte("Redirecting to: " + url_))
-}
-
-func (ctx *Context) NotModified() {
-	ctx.ResponseWriter.WriteHeader(304)
-}
-
-func (ctx *Context) NotFound(message string) {
-	ctx.ResponseWriter.WriteHeader(404)
-	ctx.ResponseWriter.Write([]byte(message))
-}
-
-//Sets the content type by extension, as defined in the mime package. 
-//For example, ctx.ContentType("json") sets the content-type to "application/json"
-func (ctx *Context) ContentType(ext string) {
-	if !strings.HasPrefix(ext, ".") {
-		ext = "." + ext
-	}
-	ctype := mime.TypeByExtension(ext)
-	if ctype != "" {
-		ctx.Header().Set("Content-Type", ctype)
-	}
-}
-
-func (ctx *Context) SetHeader(hdr string, val string, unique bool) {
-	if unique {
-		ctx.Header().Set(hdr, val)
-	} else {
-		ctx.Header().Add(hdr, val)
-	}
-}
-
-//Sets a cookie -- duration is the amount of time in seconds. 0 = forever
-func (ctx *Context) SetCookie(name string, value string, age int64) {
-	var utctime time.Time
-	if age == 0 {
-		// 2^31 - 1 seconds (roughly 2038)
-		utctime = time.Unix(2147483647, 0)
-	} else {
-		utctime = time.Unix(time.Now().Unix()+age, 0)
-	}
-	cookie := fmt.Sprintf("%s=%s; expires=%s", name, value, webTime(utctime))
-	ctx.SetHeader("Set-Cookie", cookie, false)
-}
-
-func getCookieSig(key string, val []byte, timestamp string) string {
-	hm := hmac.New(sha1.New, []byte(key))
-
-	hm.Write(val)
-	hm.Write([]byte(timestamp))
-
-	hex := fmt.Sprintf("%02x", hm.Sum(nil))
-	return hex
-}
-
-func (ctx *Context) SetSecureCookie(name string, val string, age int64) {
-	//base64 encode the val
-	if len(ctx.Server.Config.CookieSecret) == 0 {
-		ctx.Server.Logger.Println("Secret Key for secure cookies has not been set. Please assign a cookie secret to web.Config.CookieSecret.")
-		return
-	}
-	var buf bytes.Buffer
-	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
-	encoder.Write([]byte(val))
-	encoder.Close()
-	vs := buf.String()
-	vb := buf.Bytes()
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	sig := getCookieSig(ctx.Server.Config.CookieSecret, vb, timestamp)
-	cookie := strings.Join([]string{vs, timestamp, sig}, "|")
-	ctx.SetCookie(name, cookie, age)
-}
-func (ctx *Context) GetSecureCookie(name string) (string, bool) {
-	for _, cookie := range ctx.Request.Cookies() {
-		if cookie.Name != name {
-			continue
-		}
-
-		parts := strings.SplitN(cookie.Value, "|", 3)
-
-		val := parts[0]
-		timestamp := parts[1]
-		sig := parts[2]
-
-		if getCookieSig(ctx.Server.Config.CookieSecret, []byte(val), timestamp) != sig {
-			return "", false
-		}
-
-		ts, _ := strconv.ParseInt(timestamp, 0, 64)
-
-		if time.Now().Unix()-31*86400 > ts {
-			return "", false
-		}
-
-		buf := bytes.NewBufferString(val)
-		encoder := base64.NewDecoder(base64.StdEncoding, buf)
-
-		res, _ := ioutil.ReadAll(encoder)
-		return string(res), true
-	}
-	return "", false
-}
-
-// small optimization: cache the context type instead of repeteadly calling reflect.Typeof
-var contextType reflect.Type
-
-var exeFile string
-
-// default
-func defaultStaticDir() string {
-	root, _ := path.Split(exeFile)
-	return path.Join(root, "static")
-}
-
-func init() {
-	contextType = reflect.TypeOf(Context{})
-	//find the location of the exe file
-	arg0 := path.Clean(os.Args[0])
-	wd, _ := os.Getwd()
-	if strings.HasPrefix(arg0, "/") {
-		exeFile = arg0
-	} else {
-		//TODO for robustness, search each directory in $PATH
-		exeFile = path.Join(wd, arg0)
-	}
 }
 
 /* Some useful stuff

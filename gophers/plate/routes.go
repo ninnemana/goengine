@@ -7,17 +7,24 @@ import (
 )
 
 type Route struct {
-	method     string
-	regex      *regexp.Regexp
-	params     map[int]string
-	handler    http.HandlerFunc
-	sensitive  bool
-	filters    []http.HandlerFunc
-	unfiltered bool // this will ignore all global filters on this route
+	method      string
+	regex       *regexp.Regexp
+	params      map[int]string
+	handler     http.HandlerFunc
+	sensitive   bool
+	filters     []http.HandlerFunc
+	contenttype string
+	unfiltered  bool // this will ignore all global filters on this route
 }
 
 func (this *Route) Sensitive() *Route {
 	this.sensitive = true
+	return this
+}
+
+// Allows overriding the default content type header
+func (this *Route) ContentType(contenttype string) *Route {
+	this.contenttype = contenttype
 	return this
 }
 

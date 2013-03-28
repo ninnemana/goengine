@@ -2,7 +2,7 @@ package controllers
 
 import (
 	//	"fmt"
-	"gophers/plate"
+	"../../gophers/plate"
 	"net/http"
 )
 

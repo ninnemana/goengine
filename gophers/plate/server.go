@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -195,20 +196,7 @@ func (this *Server) Static(pattern string, dir string) *Route {
 		path := filepath.Clean(r.URL.Path)
 		path = filepath.Join(dir, path)
 		ext := filepath.Ext(path)
-		switch ext {
-		case ".js":
-			w.Header().Set("Content-Type", "application/javascript")
-		case ".css":
-			w.Header().Set("Content-Type", "text/css")
-		case ".jpg":
-			w.Header().Set("Content-Type", "image/jpeg")
-		case ".jpeg":
-			w.Header().Set("Content-Type", "image/jpeg")
-		case ".png":
-			w.Header().Set("Content-Type", "image/x-png")
-		case ".gif":
-			w.Header().Set("Content-Type", "image/gif")
-		}
+		w.Header().Set("Content-Type", mime.TypeByExtension(ext))
 		http.ServeFile(w, r, path)
 	})
 }

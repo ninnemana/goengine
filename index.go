@@ -2,7 +2,7 @@ package main
 
 import (
 	"./gophers/controllers"
-	_ "./gophers/helpers/mimeTypes"
+	_ "./gophers/helpers/mimetypes"
 	"./gophers/plate"
 	"flag"
 	"log"

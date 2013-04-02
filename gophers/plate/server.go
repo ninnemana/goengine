@@ -1,7 +1,7 @@
 package plate
 
 import (
-	"../helpers/mimeTypes"
+	"../helpers/mimetypes"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
@@ -152,7 +152,7 @@ func (this *Server) AddRoute(method string, pattern string, handler http.Handler
 	route.handler = makeGzipHandler(handler)
 	route.params = params
 	route.sensitive = false
-	route.contenttype = mimeTypes.TextHtml
+	route.contenttype = mimetypes.TextHtml
 
 	//and finally append to the list of Routes
 	this.Routes = append(this.Routes, route)
@@ -376,7 +376,7 @@ func ServeJson(w http.ResponseWriter, v interface{}) {
 		return
 	}
 	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
-	w.Header().Set("Content-Type", mimeTypes.ApplicationJson)
+	w.Header().Set("Content-Type", mimetypes.ApplicationJson)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Allow-Headers", "Origin")
@@ -405,7 +405,7 @@ func ServeXml(w http.ResponseWriter, v interface{}) {
 	}
 	w.Write(content)
 	w.Header().Set("Content-Length", strconv.Itoa(len(content)))
-	w.Header().Set("Content-Type", mimeTypes.TextXml)
+	w.Header().Set("Content-Type", mimetypes.TextXml)
 }
 
 // ReadXml will parses the XML-encoded data in the http
@@ -427,9 +427,9 @@ func ReadXml(r *http.Request, v interface{}) error {
 func ServeFormatted(w http.ResponseWriter, r *http.Request, v interface{}) {
 	accept := r.Header.Get("Accept")
 	switch accept {
-	case mimeTypes.ApplicationJsonShort:
+	case mimetypes.ApplicationJsonShort:
 		ServeJson(w, v)
-	case mimeTypes.ApplicationXmlShort, mimeTypes.TextXmlShort:
+	case mimetypes.ApplicationXmlShort, mimetypes.TextXmlShort:
 		ServeXml(w, v)
 	default:
 		ServeJson(w, v)

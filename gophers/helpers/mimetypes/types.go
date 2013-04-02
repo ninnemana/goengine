@@ -1,4 +1,4 @@
-package mimeTypes
+package mimetypes
 
 const (
 	// commonly used mime types

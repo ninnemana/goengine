@@ -1,30 +1,18 @@
 package rest
 
 import (
-	"appengine"
-	"appengine/urlfetch"
-	"bytes"
+	"io/ioutil"
 	"net/http"
 )
 
-func Get(url string, r *http.Request) (buf bytes.Buffer, err error) {
+func Get(url string, r *http.Request) (buf []byte, err error) {
 
-	req, err := http.NewRequest("GET", url, nil)
+	res, err := http.Get(url)
 	if err != nil {
 		return
 	}
-
-	req.Header.Set("Content-Type", "application/json")
-	t := &urlfetch.Transport{Context: appengine.NewContext(r)}
-
-	trip, err := t.RoundTrip(req)
-	if err != nil {
-		return
-	}
-
-	defer trip.Body.Close()
-
-	buf.ReadFrom(trip.Body)
+	buf, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
 
 	return
 }

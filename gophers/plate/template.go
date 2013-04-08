@@ -35,7 +35,15 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = file_path
 	}
 
-	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
+	// the template name must match the first file it parses, but doesn't accept slashes
+	// the following block ensures a match
+	templateName := t.Template
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -61,6 +69,12 @@ func (t Template) DisplayTemplate() (err error) {
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
+	templateName := t.Layout
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 	if err != nil {
 		log.Println(err)

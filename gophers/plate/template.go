@@ -62,12 +62,6 @@ func (t Template) DisplayTemplate() (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	templateName := t.Layout
-	if strings.Index(templateName, "/") > -1 {
-		tparts := strings.Split(templateName, "/")
-		templateName = tparts[len(tparts)-1]
-	}
-
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
 	templateName := t.Layout

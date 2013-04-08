@@ -35,7 +35,15 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = file_path
 	}
 
-	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
+	// the template name must match the first file it parses, but doesn't accept slashes
+	// the following block ensures a match
+	templateName := t.Template
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	err = tmpl.Execute(t.Writer, t.Bag)
 
 	return
@@ -49,7 +57,15 @@ func (t Template) DisplayTemplate() (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+	// the template name must match the first file it parses, but doesn't accept slashes
+	// the following block ensures a match
+	templateName := t.Layout
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 
 	err = templ.Execute(t.Writer, t.Bag)
 
@@ -64,7 +80,15 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
+	// the template name must match the first file it parses, but doesn't accept slashes
+	// the following block ensures a match
+	templateName := t.Layout
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	for _, filename := range templates {
 		templ.ParseFiles(filename)
 	}

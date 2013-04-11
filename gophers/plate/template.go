@@ -1,6 +1,7 @@
 package plate
 
 import (
+	"../helpers/globals"
 	"html/template"
 	"log"
 	"net/http"
@@ -18,6 +19,19 @@ type Template struct {
 /* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
    ------------------------------ */
 
+func (t *Template) SetGlobalValues() {
+	// Set Bag values
+	// example
+	// t.Bag["val"] = val
+
+	// Set FuncMap Values
+	// example:
+	/* t.FuncMap["name"] = func() int {
+		   return val
+	   }*/
+
+}
+
 func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) {
 	if w == nil {
 		log.Printf("Template Error: %v", err.Error())
@@ -33,8 +47,10 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 	if len(file_path) != 0 {
-		t.Template = file_path
+		t.Template = *globals.Filepath + file_path
 	}
+
+	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -58,9 +74,15 @@ func (t Template) DisplayTemplate() (err error) {
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
+	// ensure proper pathing for layout layout files
+	t.Layout = *globals.Filepath + t.Layout
+	t.Template = *globals.Filepath + t.Template
+
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
+
+	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -85,9 +107,14 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
+	// ensure proper pathing for layout layout files
+	t.Layout = *globals.Filepath + t.Layout
+
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
+
+	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -103,7 +130,7 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		return err
 	}
 	for _, filename := range templates {
-		templ.ParseFiles(filename)
+		templ.ParseFiles(*globals.Filepath + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
 

@@ -2,16 +2,14 @@ package main
 
 import (
 	"./gophers/controllers"
+	"./gophers/helpers/globals"
 	_ "./gophers/helpers/mimetypes"
 	"./gophers/plate"
-	"flag"
 	"log"
 	"net/http"
 )
 
 var (
-	listenAddr = flag.String("http", ":8080", "http listen address")
-
 	CorsHandler = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		return
@@ -23,19 +21,19 @@ const (
 )
 
 func main() {
-	flag.Parse()
+	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
 
 	server.AddFilter(CorsHandler)
 
 	server.Get("/", controllers.Index)
 
-	server.Static("/", "static")
+	server.Static("/", *globals.Filepath+"static")
 
 	http.Handle("/", server)
 
-	log.Println("Server running on port " + *listenAddr)
+	log.Println("Server running on port " + *globals.ListenAddr)
 
-	log.Fatal(http.ListenAndServe(*listenAddr, nil))
+	log.Fatal(http.ListenAndServe(*globals.ListenAddr, nil))
 
 }

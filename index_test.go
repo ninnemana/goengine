@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./gophers/controllers"
-	"./gophers/plate"
+	"./controllers"
+	"./helpers/plate"
 	"errors"
 	"fmt"
 	"net/http"
@@ -86,7 +86,6 @@ func TestHandler(t *testing.T) {
 	recorder, req := run_test_request(t, server, "GET", "http://localhost:8080/", nil)
 	err := code_is(t, recorder, 200)
 	checkError(req, recorder, err, t)
-
 
 	// This test is failing because for some reason the encrypted password for the test user
 	// did not properly carry over the password

@@ -6,6 +6,82 @@ The project is built using routes.go for Sinatra/ExpressJS style routing on the 
 
 **IMPORTANT**: If you are using Google AppEngine, use the _master_ branch. If you are **not** using Google AppEngine, use the _non-appengine_ branch.
 
+Deploying
+-----------
+
+You can deploy this app manually or using Capistrano.  If you choose to use Capistrano, here's an example to prompt for populating the ConnectionString so you can keep it out of your public repo for testing purposes:
+
+```ruby
+default_run_options[:pty] = true
+ssh_options[:forward_agent] = true
+
+
+set :application, "ApplicationName"
+set :appname,     "application-name"
+set :repository,  "git@github.com:youraccount/yourrepo.git"
+
+set :scm, :git
+set :scm_passphrase, ""
+set :user, "linuxuser"
+
+role :web, "server1.address.com", "server2.address.com"
+role :app, "server1.address.com", "server2.address.com"
+
+set :deploy_to, "/home/#{user}/#{application}"
+set :deploy_via, :remote_cache
+
+set :use_sudo, false
+set :sudo_prompt, ""
+set :normalize_asset_timestamps, false
+
+after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:stop", "deploy:restart"
+
+namespace :db do
+  desc "set database Connection String"
+  task :configure do
+    set(:database_username) { Capistrano::CLI.ui.ask("Database Username:") }
+  
+    set(:database_password) { Capistrano::CLI.password_prompt("Database Password:") }
+
+    db_config = <<-EOF
+      package database
+
+      const (
+        db_proto = "tcp"
+        db_addr  = "databaseaddress:3306"
+        db_user  = "#{database_username}"
+        db_pass  = "#{database_password}"
+        db_name  = "databasename"
+      )
+    EOF
+    run "mkdir -p #{deploy_to}/current/helpers/database"
+    put db_config, "#{deploy_to}/current/helpers/database/ConnectionString.go"
+  end
+end
+namespace :deploy do
+  task :goget do
+    run "/usr/local/go/bin/go get github.com/ziutek/mymysql/native"
+    run "/usr/local/go/bin/go get github.com/ziutek/mymysql/mysql"
+  end
+  task :compile do
+    run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o #{deploy_to}/current/#{appname} #{deploy_to}/current/index.go"
+  end
+  task :start do ; end
+  task :stop do 
+      kill_processes_matching "#{appname}"
+  end
+  task :restart do
+    restart_cmd = "#{current_release}/#{appname} -http=127.0.0.1:8080 -path=#{deploy_to}/current/"
+    run "nohup sh -c '#{restart_cmd} &' > nohup.out"
+  end
+end
+
+def kill_processes_matching(name)
+  run "ps -ef | grep #{name} | grep -v grep | awk '{print $2}' | sudo xargs kill -2 || echo 'no process with name #{name} found'"
+end
+
+```
+
 Mustache.js
 -----------
 

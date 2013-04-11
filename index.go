@@ -1,10 +1,11 @@
 package main
 
 import (
-	"./gophers/controllers"
-	"./gophers/helpers/globals"
-	_ "./gophers/helpers/mimetypes"
-	"./gophers/plate"
+	"./controllers"
+	"./helpers/database"
+	"./helpers/globals"
+	_ "./helpers/mimetypes"
+	"./helpers/plate"
 	"log"
 	"net/http"
 )
@@ -21,6 +22,11 @@ const (
 )
 
 func main() {
+	err := database.PrepareAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
 

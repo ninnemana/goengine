@@ -4,7 +4,7 @@ GoEngine is combination of serveral different repositories, some made for Go som
 
 The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.
 
-**IMPORTANT**: If you are using Google AppEngine, use the [_gae_](https://github.com/ninnemana/goengine/tree/gae) branch. If you are **__not__** using Google AppEngine, use the _master_ branch.
+**IMPORTANT**: If you are **__not__** using Google AppEngine, use the [_master_](https://github.com/ninnemana/goengine/tree/master) branch.
 
 Mustache.js
 -----------

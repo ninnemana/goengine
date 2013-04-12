@@ -82,6 +82,8 @@ end
 
 ```
 
+Depending on the server you're on, you may need to define the path of the application as a flag in the deployment script or when running manually on the server. The reason for that is the server may have issues pathing the static files in the project. The example in the script above should help get the deployment working properly with the right static file paths.
+
 Mustache.js
 -----------
 

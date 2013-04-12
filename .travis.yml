@@ -1,1 +1,8 @@
 language: go
+
+#blacklist
+branches:
+		except:
+			- gae
+			- examples
+			- gh-pages

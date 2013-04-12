@@ -4,6 +4,8 @@ GoEngine Boilerplate is combination of serveral different repositories, some mad
 
 The project is built using with Sinatra style routing and MySQL support. HTML Structure and design using h5bp(http://html5boilerplate.com) and Twitter Bootstrap(http://twitter.github.com/bootstrap). Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.
 
+**IMPORTANT**: If you **__are__** using Google AppEngine, use the [_gae_](https://github.com/ninnemana/goengine/tree/gae) branch.
+
 Deploying
 -----------
 

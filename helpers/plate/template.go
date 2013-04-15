@@ -25,19 +25,6 @@ type Template struct {
 /* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
    ------------------------------ */
 
-func (t *Template) SetGlobalValues() {
-	// Set Bag values
-	// example
-	// t.Bag["val"] = val
-
-	// Set FuncMap Values
-	// example:
-	/* t.FuncMap["name"] = func() int {
-		   return val
-	   }*/
-
-}
-
 func (this *Server) Template(w http.ResponseWriter) (templ *Template, err error) {
 	if w == nil {
 		log.Printf("Template Error: %v", err.Error())
@@ -64,8 +51,6 @@ func (t Template) SinglePage(file_path string) (err error) {
 	if len(file_path) != 0 {
 		t.Template = dir + "/" + file_path
 	}
-
-	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
@@ -102,8 +87,6 @@ func (t Template) DisplayTemplate() (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 
-	t.SetGlobalValues()
-
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match
 	templateName := t.Layout
@@ -138,8 +121,6 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
-
-	t.SetGlobalValues()
 
 	// the template name must match the first file it parses, but doesn't accept slashes
 	// the following block ensures a match

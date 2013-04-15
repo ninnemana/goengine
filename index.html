@@ -4,11 +4,11 @@
   <head>
     <meta charset='utf-8' />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Goengine-boilerplate : Boilerplate for Go intended to be deployed to Google App Engine. Uses some features from HTML5-Boilerplate along with Twitter Bootstrap 2.0" />
+    <meta name="description" content="Goengine : Boilerplate for Go uses Sinatra style routing with some features from HTML5-Boilerplate along with Twitter Bootstrap 2.0" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>Goengine-boilerplate</title>
+    <title>Goengine</title>
   </head>
 
   <body>
@@ -16,14 +16,14 @@
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
         <header class="inner">
-          <a id="forkme_banner" href="https://github.com/ninnemana/goengine-boilerplate">View on GitHub</a>
+          <a id="forkme_banner" href="https://github.com/ninnemana/goengine">View on GitHub</a>
 
-          <h1 id="project_title">Goengine-boilerplate</h1>
-          <h2 id="project_tagline">Boilerplate for Go intended to be deployed to Google App Engine. Uses some features from HTML5-Boilerplate along with Twitter Bootstrap 2.0</h2>
+          <h1 id="project_title">Goengine</h1>
+          <h2 id="project_tagline">Boilerplate for Go uses Sinatra style routing with some features from HTML5-Boilerplate along with Twitter Bootstrap 2.0</h2>
 
             <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/ninnemana/goengine-boilerplate/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/ninnemana/goengine-boilerplate/tarball/master">Download this project as a tar.gz file</a>
+              <a class="zip_download_link" href="https://github.com/ninnemana/goengine/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/ninnemana/goengine/tarball/master">Download this project as a tar.gz file</a>
             </section>
         </header>
     </div>
@@ -31,29 +31,94 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h1>GoEngine Boilerplate</h1>
+        <h1>GoEngine Boilerplate <a href="https://travis-ci.org/ninnemana/goengine"><img src="https://travis-ci.org/ninnemana/goengine.png?branch=non-appengine" alt="Build Status"></a>
+</h1>
 
 <p>GoEngine Boilerplate is combination of serveral different repositories, some made for Go some not.</p>
 
-<p>The project is built using routes.go for Sinatra/ExpressJS style routing on the Google App Engine PaaS. HTML Structure and design using h5bp and Twitter Bootstrap. Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.</p>
+<p>The project is built using with Sinatra style routing and MySQL support. HTML Structure and design using h5bp(<a href="http://html5boilerplate.com">http://html5boilerplate.com</a>) and Twitter Bootstrap(<a href="http://twitter.github.com/bootstrap">http://twitter.github.com/bootstrap</a>). Javascript templating is done with mustache.js, but has not been baked into requireJS. The javascript component incorporates RequireJS for dependency management.</p>
+
+<p><strong>IMPORTANT</strong>: If you <strong><strong>are</strong></strong> using Google AppEngine, use the <a href="https://github.com/ninnemana/goengine/tree/gae"><em>gae</em></a> branch.</p>
+
+<h2>Deploying</h2>
+
+<p>You can deploy this app manually or using Capistrano.  If you choose to use Capistrano, here's an example to prompt for populating the ConnectionString so you can keep it out of your public repo for testing purposes:</p>
+
+<div class="highlight"><pre><span class="n">default_run_options</span><span class="o">[</span><span class="ss">:pty</span><span class="o">]</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="n">ssh_options</span><span class="o">[</span><span class="ss">:forward_agent</span><span class="o">]</span> <span class="o">=</span> <span class="kp">true</span>
+
+
+<span class="n">set</span> <span class="ss">:application</span><span class="p">,</span> <span class="s2">"ApplicationName"</span>
+<span class="n">set</span> <span class="ss">:appname</span><span class="p">,</span>     <span class="s2">"application-name"</span>
+<span class="n">set</span> <span class="ss">:repository</span><span class="p">,</span>  <span class="s2">"git@github.com:youraccount/yourrepo.git"</span>
+
+<span class="n">set</span> <span class="ss">:scm</span><span class="p">,</span> <span class="ss">:git</span>
+<span class="n">set</span> <span class="ss">:scm_passphrase</span><span class="p">,</span> <span class="s2">""</span>
+<span class="n">set</span> <span class="ss">:user</span><span class="p">,</span> <span class="s2">"linuxuser"</span>
+
+<span class="n">role</span> <span class="ss">:web</span><span class="p">,</span> <span class="s2">"server1.address.com"</span><span class="p">,</span> <span class="s2">"server2.address.com"</span>
+<span class="n">role</span> <span class="ss">:app</span><span class="p">,</span> <span class="s2">"server1.address.com"</span><span class="p">,</span> <span class="s2">"server2.address.com"</span>
+
+<span class="n">set</span> <span class="ss">:deploy_to</span><span class="p">,</span> <span class="s2">"/home/</span><span class="si">#{</span><span class="n">user</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">application</span><span class="si">}</span><span class="s2">"</span>
+<span class="n">set</span> <span class="ss">:deploy_via</span><span class="p">,</span> <span class="ss">:remote_cache</span>
+
+<span class="n">set</span> <span class="ss">:use_sudo</span><span class="p">,</span> <span class="kp">false</span>
+<span class="n">set</span> <span class="ss">:sudo_prompt</span><span class="p">,</span> <span class="s2">""</span>
+<span class="n">set</span> <span class="ss">:normalize_asset_timestamps</span><span class="p">,</span> <span class="kp">false</span>
+
+<span class="n">after</span> <span class="ss">:deploy</span><span class="p">,</span> <span class="s2">"deploy:goget"</span><span class="p">,</span> <span class="s2">"db:configure"</span><span class="p">,</span> <span class="s2">"deploy:compile"</span><span class="p">,</span> <span class="s2">"deploy:stop"</span><span class="p">,</span> <span class="s2">"deploy:restart"</span>
+
+<span class="n">namespace</span> <span class="ss">:db</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"set database Connection String"</span>
+  <span class="n">task</span> <span class="ss">:configure</span> <span class="k">do</span>
+    <span class="n">set</span><span class="p">(</span><span class="ss">:database_username</span><span class="p">)</span> <span class="p">{</span> <span class="ss">Capistrano</span><span class="p">:</span><span class="ss">:CLI</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">ask</span><span class="p">(</span><span class="s2">"Database Username:"</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="n">set</span><span class="p">(</span><span class="ss">:database_password</span><span class="p">)</span> <span class="p">{</span> <span class="ss">Capistrano</span><span class="p">:</span><span class="ss">:CLI</span><span class="o">.</span><span class="n">password_prompt</span><span class="p">(</span><span class="s2">"Database Password:"</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="n">db_config</span> <span class="o">=</span> <span class="o">&lt;&lt;-</span><span class="no">EOF</span>
+<span class="sh">      package database</span>
+
+<span class="sh">      const (</span>
+<span class="sh">        db_proto = "tcp"</span>
+<span class="sh">        db_addr  = "databaseaddress:3306"</span>
+<span class="sh">        db_user  = "#{database_username}"</span>
+<span class="sh">        db_pass  = "#{database_password}"</span>
+<span class="sh">        db_name  = "databasename"</span>
+<span class="sh">      )</span>
+<span class="no">    EOF</span>
+    <span class="n">run</span> <span class="s2">"mkdir -p </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/helpers/database"</span>
+    <span class="n">put</span> <span class="n">db_config</span><span class="p">,</span> <span class="s2">"</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/helpers/database/ConnectionString.go"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+<span class="n">namespace</span> <span class="ss">:deploy</span> <span class="k">do</span>
+  <span class="n">task</span> <span class="ss">:goget</span> <span class="k">do</span>
+    <span class="n">run</span> <span class="s2">"/usr/local/go/bin/go get github.com/ziutek/mymysql/native"</span>
+    <span class="n">run</span> <span class="s2">"/usr/local/go/bin/go get github.com/ziutek/mymysql/mysql"</span>
+  <span class="k">end</span>
+  <span class="n">task</span> <span class="ss">:compile</span> <span class="k">do</span>
+    <span class="n">run</span> <span class="s2">"GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/</span><span class="si">#{</span><span class="n">appname</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/index.go"</span>
+  <span class="k">end</span>
+  <span class="n">task</span> <span class="ss">:start</span> <span class="k">do</span> <span class="p">;</span> <span class="k">end</span>
+  <span class="n">task</span> <span class="ss">:stop</span> <span class="k">do</span> 
+      <span class="n">kill_processes_matching</span> <span class="s2">"</span><span class="si">#{</span><span class="n">appname</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+  <span class="n">task</span> <span class="ss">:restart</span> <span class="k">do</span>
+    <span class="n">restart_cmd</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">current_release</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="n">appname</span><span class="si">}</span><span class="s2"> -http=127.0.0.1:8080 -path=</span><span class="si">#{</span><span class="n">deploy_to</span><span class="si">}</span><span class="s2">/current/"</span>
+    <span class="n">run</span> <span class="s2">"nohup sh -c '</span><span class="si">#{</span><span class="n">restart_cmd</span><span class="si">}</span><span class="s2"> &amp;' &gt; nohup.out"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">kill_processes_matching</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+  <span class="n">run</span> <span class="s2">"ps -ef | grep </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2"> | grep -v grep | awk '{print $2}' | sudo xargs kill -2 || echo 'no process with name </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2"> found'"</span>
+<span class="k">end</span>
+
+</pre></div>
+
+<p>Depending on the server you're on, you may need to define the path of the application as a flag in the deployment script or when running manually on the server. The reason for that is the server may have issues pathing the static files in the project. The example in the script above should help get the deployment working properly with the right static file paths.</p>
 
 <h2>Mustache.js</h2>
 
 <p>mustache.js has been converted to use [[ ]] as delimiters so it can play nice with golang's html/template package.</p>
-
-<h2>Issues</h2>
-
-<p>There is currently (1.7.0) an issue with passing routes with spaces on the App Engine dev_appserver.py. The issue does not seem to exist on the live server. We have found that making a small change to /google/appengine/ext/go/__init__.py will resolve this issue.</p>
-
-<p>Remove from line 513:</p>
-
-<pre><code>request_uri = env['PATH_INFO']
-</code></pre>
-
-<p>Replace with:</p>
-
-<pre><code>request_uri = env['_AH_ENCODED_SCRIPT_NAME']
-</code></pre>
 
 <h2>Contributors</h2>
 
@@ -67,305 +132,14 @@
 <ul>
 <li><a href="http://twitter.com/janiukjf">http://twitter.com/janiukjf</a></li>
 <li><a href="http://github.com/janiukjf">http://github.com/janiukjf</a></li>
-</ul><h1><a href="http://html5boilerplate.com">HTML5 Boilerplate</a></h1>
-
-<p>HTML5 Boilerplate is a professional front-end template that helps you build fast, robust, adaptable, and future-proof websites. Spend more time developing and less time reinventing the wheel.</p>
-
-<p>This project is the product of many years of iterative development and combined community knowledge. It does not impose a specific development philosophy or framework, so you're free to architect your code in the way that you want.</p>
-
-<h2>Quick start</h2>
-
-<p>Clone the git repo - <code>git clone git://github.com/h5bp/html5-boilerplate.git</code> - or <a href="https://github.com/h5bp/html5-boilerplate/zipball/master">download it</a></p>
-
-<h2>Features</h2>
-
-<ul>
-<li>HTML5 ready. Use the new elements with confidence.</li>
-<li>Cross-browser compatible (Chrome, Opera, Safari, Firefox 3.6+, IE6+).</li>
-<li>Designed with progressive enhancement in mind.</li>
-<li>CSS normalizations and common bug fixes.</li>
-<li>IE-specific classes for easier cross-browser control.</li>
-<li>A default print stylesheet, performance optimized.</li>
-<li>Mobile browser optimizations.</li>
-<li>Protection against any stray <code>console.log</code> causing JavaScript errors in IE6/7.</li>
-<li>The latest jQuery via CDN, with a local fallback.</li>
-<li>A custom Modernizr build for feature detection.</li>
-<li>An optimized Google Analytics snippet.</li>
-<li>Apache server caching, compression, and other configuration defaults for Grade-A performance.</li>
-<li>Cross-domain Ajax and Flash.</li>
-<li>"Delete-key friendly." Easy to strip out parts you don't need.</li>
-<li>Extensive inline and accompanying documentation.</li>
-</ul><h2>Contributing</h2>
-
-<p>Anyone and everyone is welcome to <a href="https://github.com/h5bp/html5-boilerplate/wiki/contribute">contribute</a>. Hundreds of developers have helped make the HTML5 Boilerplate what it is today.</p>
-
-<h2>Project information</h2>
-
-<ul>
-<li>Source: <a href="http://github.com/h5bp/html5-boilerplate">http://github.com/h5bp/html5-boilerplate</a>
-</li>
-<li>Web: <a href="http://html5boilerplate.com">http://html5boilerplate.com</a>
-</li>
-<li>Docs: <a href="http://html5boilerplate.com/docs">http://html5boilerplate.com/docs</a>
-</li>
-<li>Twitter: <a href="http://twitter.com/h5bp">http://twitter.com/h5bp</a>
-</li>
-</ul><h2>License</h2>
-
-<h3>Major components:</h3>
-
-<ul>
-<li>jQuery: MIT/GPL license</li>
-<li>Modernizr: MIT/BSD license</li>
-<li>Normalize.css: Public Domain</li>
-</ul><h3>Everything else:</h3>
-
-<p>The Unlicense (aka: public domain)</p>
-
-<h1>
-<a href="http://twitter.github.com/bootstrap">Twitter Bootstrap</a> <a href="http://travis-ci.org/twitter/bootstrap"><img src="https://secure.travis-ci.org/twitter/bootstrap.png" alt="Build Status"></a>
-</h1>
-
-<p>Bootstrap provides simple and flexible HTML, CSS, and Javascript for popular user interface components and interactions. In other words, it's a front-end toolkit for faster, more beautiful web development. It's created and maintained by <a href="http://twitter.com/mdo">Mark Otto</a> and <a href="http://twitter.com/fat">Jacob Thornton</a> at Twitter.</p>
-
-<p>To get started, checkout <a href="http://twitter.github.com/bootstrap">http://twitter.github.com/bootstrap</a>!</p>
-
-<h2>Quick start</h2>
-
-<p>Clone the repo, <code>git clone git://github.com/twitter/bootstrap.git</code>, or <a href="https://github.com/twitter/bootstrap/zipball/master">download the latest release</a>.</p>
-
-<h2>Versioning</h2>
-
-<p>For transparency and insight into our release cycle, and for striving to maintain backward compatibility, Bootstrap will be maintained under the Semantic Versioning guidelines as much as possible.</p>
-
-<p>Releases will be numbered with the follow format:</p>
-
-<p><code>&lt;major&gt;.&lt;minor&gt;.&lt;patch&gt;</code></p>
-
-<p>And constructed with the following guidelines:</p>
-
-<ul>
-<li>Breaking backward compatibility bumps the major (and resets the minor and patch)</li>
-<li>New additions without breaking backward compatibility bumps the minor (and resets the patch)</li>
-<li>Bug fixes and misc changes bumps the patch</li>
-</ul><p>For more information on SemVer, please visit <a href="http://semver.org/">http://semver.org/</a>.</p>
-
-<h2>Bug tracker</h2>
-
-<p>Have a bug? Please create an issue here on GitHub! Also, when filing please make sure you're familiar with <a href="https://github.com/necolas/issue-guidelines">necolas's guidelines</a>. thanks! &lt;3</p>
-
-<p><a href="https://github.com/twitter/bootstrap/issues">https://github.com/twitter/bootstrap/issues</a></p>
-
-<h2>Twitter account</h2>
-
-<p>Keep up to date on announcements and more by following Bootstrap on Twitter, <a href="http://twitter.com/TwBootstrap">@TwBootstrap</a>.</p>
-
-<h2>Blog</h2>
-
-<p>Read more detailed announcements, discussions, and more on <a href="http://blog.getbootstrap.com">The Official Twitter Bootstrap Blog</a>.</p>
-
-<h2>Mailing list</h2>
-
-<p>Have a question? Ask on our mailing list!</p>
-
-<p><a href="mailto:twitter-bootstrap@googlegroups.com">twitter-bootstrap@googlegroups.com</a></p>
-
-<p><a href="http://groups.google.com/group/twitter-bootstrap">http://groups.google.com/group/twitter-bootstrap</a></p>
-
-<h2>IRC</h2>
-
-<p>Server: irc.freenode.net</p>
-
-<p>Channel: ##twitter-bootstrap (the double ## is not a typo)</p>
-
-<h2>Developers</h2>
-
-<p>We have included a makefile with convenience methods for working with the Bootstrap library.</p>
-
-<ul>
-<li>
-<strong>dependencies</strong>
-Our makefile depends on you having recess, uglify.js, and jshint installed. To install, just run the following command in npm:</li>
-</ul><pre><code>$ npm install recess uglify-js jshint -g
-</code></pre>
-
-<ul>
-<li><p><strong>build</strong> - <code>make</code>
-Runs the recess compiler to rebuild the <code>/less</code> files and compiles the docs pages. Requires recess and uglify-js. <a href="http://twitter.github.com/bootstrap/less.html#compiling">Read more in our docs »</a></p></li>
-<li><p><strong>test</strong> - <code>make test</code>
-Runs jshint and qunit tests headlessly in phantom js (used for ci). Depends on having phatomjs installed.</p></li>
-<li><p><strong>watch</strong> - <code>make watch</code>
-This is a convenience method for watching just Less files and automatically building them whenever you save. Requires the Watchr gem.</p></li>
-</ul><h2>Contributing</h2>
-
-<p>Please make all pull requests against wip-* branches. Also, if your unit test contains javascript patches or features - you must include relevant unit tests. Thanks!</p>
-
-<h2>Authors</h2>
-
-<p><strong>Mark Otto</strong></p>
-
-<ul>
-<li><a href="http://twitter.com/mdo">http://twitter.com/mdo</a></li>
-<li><a href="http://github.com/markdotto">http://github.com/markdotto</a></li>
-</ul><p><strong>Jacob Thornton</strong></p>
-
-<ul>
-<li><a href="http://twitter.com/fat">http://twitter.com/fat</a></li>
-<li><a href="http://github.com/fat">http://github.com/fat</a></li>
-</ul><h2>Copyright and license</h2>
-
-<p>Copyright 2012 Twitter, Inc.</p>
-
-<p>Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this work except in compliance with the License.
-You may obtain a copy of the License in the LICENSE file, or at:</p>
-
-<p><a href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
-
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
-
-<h1>routes.go</h1>
-
-<p>a simple http routing API for the Go programming language</p>
-
-<pre><code>go get github.com/bradrydzewski/routes
-</code></pre>
-
-<p>this project combines the best of <code>web.go</code> and <code>pat.go</code>. It uses <code>pat.go</code>'s named url parameters (ie <code>:param</code>) and <code>web.go</code>'s regular expression groups for url matching and parameter extraction, which provides significant performance improvements.</p>
-
-<p>for more information see:
-<a href="http://gopkgdoc.appspot.com/pkg/github.com/bradrydzewski/routes">http://gopkgdoc.appspot.com/pkg/github.com/bradrydzewski/routes</a></p>
-
-<h2>Getting Started</h2>
-
-<pre><code>package main
-
-import (
-    "fmt"
-    "github.com/bradrydzewski/routes"
-    "net/http"
-)
-
-func Whoami(w http.ResponseWriter, r *http.Request) {
-    params := r.URL.Query()
-    lastName := params.Get(":last")
-    firstName := params.Get(":first")
-    fmt.Fprintf(w, "you are %s %s", firstName, lastName)
-}
-
-func main() {
-    mux := routes.New()
-    mux.Get("/:last/:first", Whoami)
-
-    http.Handle("/", mux)
-    http.ListenAndServe(":8088", nil)
-}
-</code></pre>
-
-<h3>Route Examples</h3>
-
-<p>You can create routes for all http methods:</p>
-
-<pre><code>mux.Get("/:param", handler)
-mux.Put("/:param", handler)
-mux.Post("/:param", handler)
-mux.Patch("/:param", handler)
-mux.Del("/:param", handler)
-</code></pre>
-
-<p>You can specify custom regular expressions for routes:</p>
-
-<pre><code>mux.Get("/files/:param(.+)", handler)
-</code></pre>
-
-<p>You can also create routes for static files:</p>
-
-<pre><code>pwd, _ := os.Getwd()
-mux.Static("/static", pwd)
-</code></pre>
-
-<p>this will serve any files in <code>/static</code>, including files in subdirectories. For example <code>/static/logo.gif</code> or <code>/static/style/main.css</code>.</p>
-
-<h2>Helper Functions</h2>
-
-<p>You can use helper functions for serializing to Json and Xml. I found myself constantly writing code to serialize, set content type, content length, etc. Feel free to use these functions to eliminate redundant code in your app.</p>
-
-<p>Helper function for serving Json, sets content type to <code>application/json</code>:</p>
-
-<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
-    mystruct := { ... }
-    routes.ServeJson(w, &amp;mystruct)
-}
-</code></pre>
-
-<p>Helper function for serving Xml, sets content type to <code>application/xml</code>:</p>
-
-<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
-    mystruct := { ... }
-    routes.ServeXml(w, &amp;mystruct)
-}
-</code></pre>
-
-<p>Helper function to serve Xml OR Json, depending on the value of the <code>Accept</code> header:</p>
-
-<pre><code>func handler(w http.ResponseWriter, r *http.Request) {
-    mystruct := { ... }
-    routes.ServeFormatted(w, r, &amp;mystruct)
-}
-</code></pre>
-
-<h2>Security</h2>
-
-<p>You can restrict access to routes by assigning an <code>AuthHandler</code> to a route.</p>
-
-<p>Here is an example using a custom <code>AuthHandler</code> per route. Image we are doing some type of Basic authentication:</p>
-
-<pre><code>func authHandler(w http.ResponseWriter, r *http.Request) bool {
-    user := r.URL.User.Username()
-    password := r.URL.User.Password()
-    if user != "xxx" &amp;&amp; password != "xxx" {
-        // if we wanted, we could do an http.Redirect here
-        return false
-    }
-    return true
-}
-
-mux.Get("/:param", handler).SecureFunc(authHandler)
-</code></pre>
-
-<p>If you plan to use the same <code>AuthHandler</code> to secure all of your routes, you may want to set the <code>DefaultAuthHandler</code>:</p>
-
-<pre><code>routes.DefaulAuthHandler = authHandler
-mux.Get("/:param", handler).Secure()
-mux.Get("/:param", handler).Secure()
-</code></pre>
-
-<h3>OAuth2</h3>
-
-<p>In the above examples, we implemented our own custom <code>AuthHandler</code>. Check out the <a href="https://github.com/bradrydzewski/auth.go">auth.go</a> API which provides custom AuthHandlers for OAuth2 providers such as Google and Github.</p>
-
-<h2>Logging</h2>
-
-<p>Logging is enabled by default, but can be disabled:</p>
-
-<pre><code>mux.Logging = false
-</code></pre>
-
-<p>You can also specify your logger:</p>
-
-<pre><code>mux.Logger = log.New(os.Stdout, "", 0)
-</code></pre>
+</ul>
       </section>
     </div>
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">Goengine-boilerplate maintained by <a href="https://github.com/ninnemana">ninnemana</a></p>
+        <p class="copyright">Goengine maintained by <a href="https://github.com/ninnemana">ninnemana</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>

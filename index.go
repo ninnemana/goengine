@@ -2,12 +2,13 @@ package main
 
 import (
 	"./controllers"
-	"./helpers/database"
+	// "./helpers/database"
 	"./helpers/globals"
 	_ "./helpers/mimetypes"
 	"./helpers/plate"
 	"log"
 	"net/http"
+	"os"
 )
 
 var (
@@ -22,10 +23,10 @@ const (
 )
 
 func main() {
-	err := database.PrepareAll()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := database.PrepareAll()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
@@ -34,7 +35,9 @@ func main() {
 
 	server.Get("/", controllers.Index)
 
-	server.Static("/", *globals.Filepath+"static")
+	dir, _ := os.Getwd()
+
+	server.Static("/", dir+"/"+"static")
 
 	http.Handle("/", server)
 

@@ -1,11 +1,16 @@
 package plate
 
 import (
-	"../globals"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+)
+
+var (
+	tmpl *Template
 )
 
 type Template struct {
@@ -32,22 +37,31 @@ func (t *Template) SetGlobalValues() {
 
 }
 
-func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) {
+func (this *Server) Template(w http.ResponseWriter) (templ *Template, err error) {
 	if w == nil {
 		log.Printf("Template Error: %v", err.Error())
 		return
 	}
-	templ.Writer = w
-	templ.Bag = make(map[string]interface{})
+	templ = &Template{
+		Writer: w,
+		Bag:    make(map[string]interface{}),
+	}
+
 	return
 }
 
 func (t Template) SinglePage(file_path string) (err error) {
+
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
 	if len(file_path) != 0 {
-		t.Template = *globals.Filepath + file_path
+		t.Template = dir + "/" + file_path
 	}
 
 	t.SetGlobalValues()
@@ -71,12 +85,18 @@ func (t Template) SinglePage(file_path string) (err error) {
 }
 
 func (t Template) DisplayTemplate() (err error) {
+
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
 	// ensure proper pathing for layout layout files
-	t.Layout = *globals.Filepath + t.Layout
-	t.Template = *globals.Filepath + t.Template
+	t.Layout = dir + "/" + t.Layout
+	t.Template = dir + "/" + t.Template
 
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -104,11 +124,17 @@ func (t Template) DisplayTemplate() (err error) {
 }
 
 func (t Template) DisplayMultiple(templates []string) (err error) {
+
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+
 	if t.Layout == "" {
 		t.Layout = "layout.html"
 	}
 	// ensure proper pathing for layout layout files
-	t.Layout = *globals.Filepath + t.Layout
+	t.Layout = dir + "/" + t.Layout
 
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -130,9 +156,20 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		return err
 	}
 	for _, filename := range templates {
-		templ.ParseFiles(*globals.Filepath + filename)
+		templ.ParseFiles(dir + "/" + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
 
 	return
+}
+func SetTemplate(t Template) {
+	tmpl = &t
+}
+
+func GetTemplate() (*Template, error) {
+	if tmpl != nil {
+		return tmpl, nil
+	}
+
+	return nil, errors.New("No template defined")
 }

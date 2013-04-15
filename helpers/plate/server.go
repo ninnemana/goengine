@@ -196,6 +196,7 @@ func (this *Server) Static(pattern string, dir string) *Route {
 		path := filepath.Clean(r.URL.Path)
 		path = filepath.Join(dir, path)
 		ext := filepath.Ext(path)
+
 		w.Header().Set("Content-Type", mime.TypeByExtension(ext))
 		http.ServeFile(w, r, path)
 	})
@@ -296,7 +297,6 @@ func (this *Server) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-
 		w.Header().Set("Content-Type", route.contenttype)
 
 		//Invoke the request handler

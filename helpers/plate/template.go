@@ -33,7 +33,7 @@ func (this *Server) Template(w http.ResponseWriter) (templ *Template, err error)
 	templ = &Template{
 		Writer:  w,
 		Bag:     make(map[string]interface{}),
-		FuncMap: make(map[string]interface{}),
+		FuncMap: template.FuncMap{},
 	}
 
 	return

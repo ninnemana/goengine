@@ -14,11 +14,12 @@ var (
 )
 
 type Template struct {
-	Layout   string
-	Template string
-	Bag      map[string]interface{}
-	Writer   http.ResponseWriter
-	FuncMap  template.FuncMap
+	Layout       string
+	Template     string
+	Bag          map[string]interface{}
+	Writer       http.ResponseWriter
+	FuncMap      template.FuncMap
+	HtmlTemplate *template.Template
 }
 
 /* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
@@ -76,7 +77,6 @@ func (t Template) SinglePage(file_path string) (err error) {
 
 	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	err = tmpl.Execute(t.Writer, t.Bag)
@@ -114,7 +114,6 @@ func (t Template) DisplayTemplate() (err error) {
 
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -152,7 +151,6 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	for _, filename := range templates {
@@ -162,8 +160,55 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 
 	return
 }
-func SetTemplate(t Template) {
-	tmpl = &t
+func SetTemplate(t *Template) {
+	tmpl = t
+}
+
+func (t *Template) ParseFile(file string) error {
+
+	if t.HtmlTemplate == nil {
+		var tmplName string
+		if strings.Index(file, "/") > -1 {
+			tparts := strings.Split(file, "/")
+			tmplName = tparts[len(tparts)-1]
+		}
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(file)
+		if err != nil {
+			return err
+		}
+		t.HtmlTemplate = tmpl
+		return nil
+	}
+
+	_, err := t.HtmlTemplate.ParseFiles(file)
+
+	return err
+}
+
+func (t Template) Display(w http.ResponseWriter) error {
+
+	t.Writer = w
+	if t.HtmlTemplate == nil {
+		if t.Template == "" {
+			return errors.New("No template files defined")
+		}
+
+		tmplName := t.Template
+		if strings.Index(t.Template, "/") > -1 {
+			tparts := strings.Split(t.Template, "/")
+			tmplName = tparts[len(tparts)-1]
+		}
+		tmpl, err := template.New(tmplName).Funcs(t.FuncMap).ParseFiles(t.Template)
+		if err != nil {
+			return err
+		}
+		t.HtmlTemplate = tmpl
+		return nil
+	}
+
+	err := tmpl.HtmlTemplate.Execute(t.Writer, t.Bag)
+	return err
+
 }
 
 func GetTemplate() (*Template, error) {

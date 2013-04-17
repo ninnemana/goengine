@@ -19,8 +19,8 @@ func PrepareAll() error {
 	// example: 
 	//UnPreparedStatements["exampleStmt"] = "select * from tablename where id=?"
 
-	if !AdminDb.IsConnected() {
-		AdminDb.Connect()
+	if !Db.IsConnected() {
+		Db.Connect()
 	}
 
 	c := make(chan int)
@@ -37,7 +37,7 @@ func PrepareAll() error {
 }
 
 func PrepareStatement(name string, sql string, ch chan int) {
-	stmt, err := AdminDb.Prepare(sql)
+	stmt, err := Db.Prepare(sql)
 	if err == nil {
 		Statements[name] = stmt
 	}

@@ -4,38 +4,44 @@ import (
 	"errors"
 	"expvar"
 	"github.com/ziutek/mymysql/mysql"
+	_ "log"
 )
 
-// prepared statements go here
 var (
-// example statement
-//statementNameStmt = "select * from TableName"
-)
-
-// Create map of all statements
-var (
-	Statements map[string]mysql.Stmt
+	Statements = make(map[string]mysql.Stmt, 0)
 )
 
 // Prepare all MySQL statements
 func PrepareAll() error {
 
-	Statements = make(map[string]mysql.Stmt, 0)
+	UnPreparedStatements := make(map[string]string, 0)
+	// Prepared Statements Go Here
+	// example: 
+	//UnPreparedStatements["exampleStmt"] = "select * from tablename where id=?"
 
-	if !Db.IsConnected() {
-		Db.Connect()
+	if !AdminDb.IsConnected() {
+		AdminDb.Connect()
 	}
 
-	// Example Preparation
-	/*
-		statementNamePrepared, err := Db.Prepare(statementNameStmt)
-		if err != nil {
-			return err
-		}
-		Statements["statementNameStmt"] = statementNamePrepared
-	*/
+	c := make(chan int)
+
+	for stmtname, stmtsql := range UnPreparedStatements {
+		go PrepareStatement(stmtname, stmtsql, c)
+	}
+
+	for _, _ = range UnPreparedStatements {
+		<-c
+	}
 
 	return nil
+}
+
+func PrepareStatement(name string, sql string, ch chan int) {
+	stmt, err := AdminDb.Prepare(sql)
+	if err == nil {
+		Statements[name] = stmt
+	}
+	ch <- 1
 }
 
 func GetStatement(key string) (stmt mysql.Stmt, err error) {
@@ -44,8 +50,6 @@ func GetStatement(key string) (stmt mysql.Stmt, err error) {
 		qry := expvar.Get(key)
 		if qry == nil {
 			err = errors.New("Invalid query reference")
-		} else {
-			stmt, err = Db.Prepare(qry.String())
 		}
 	}
 	return

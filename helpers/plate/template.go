@@ -134,23 +134,23 @@ func (t *Template) ParseFile(file string, override bool) error {
 			return err
 		}
 	}
+	var tmpl *template.Template
 	if t.HtmlTemplate == nil {
-		/*var tmplName string
-		if strings.Index(file, "/") > -1 {
-			tparts := strings.Split(file, "/")
-			tmplName = tparts[len(tparts)-1]
-		}*/
-		tmpl, err := template.ParseFiles(dir + "/" + file)
+
+		tmpl, err = template.ParseFiles(dir + "/" + file)
 		if err != nil {
 			return err
 		}
 		tmpl.Funcs(t.FuncMap)
-
-		t.HtmlTemplate = tmpl
-		return nil
+	} else {
+		// Make sure the FuncMap is added to the template before parsing the new file
+		t.HtmlTemplate.Funcs(t.FuncMap)
+		tmpl, err = t.HtmlTemplate.ParseFiles(dir + "/" + file)
+		if err != nil {
+			return err
+		}
 	}
-
-	_, err = t.HtmlTemplate.ParseFiles(dir + "/" + file)
+	t.HtmlTemplate = tmpl
 
 	return err
 }

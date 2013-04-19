@@ -191,3 +191,17 @@ func GetTemplate() (*Template, error) {
 
 	return nil, errors.New("No template defined")
 }
+
+func NewTemplate(w http.ResponseWriter) *Template {
+	server := NewServer()
+
+	tmpl, err := GetTemplate()
+	if err != nil {
+		tmpl, err = server.Template(w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return tmpl
+		}
+	}
+	return tmpl
+}

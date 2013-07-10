@@ -137,7 +137,7 @@ func (t *Template) ParseFile(file string, override bool) error {
 	var tmpl *template.Template
 	if t.HtmlTemplate == nil {
 
-		tmpl, err = template.ParseFiles(dir + "/" + file)
+		tmpl, err = template.New(file).Funcs(t.FuncMap).ParseFiles(dir + "/" + file)
 		if err != nil {
 			return err
 		}
